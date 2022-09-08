@@ -2,11 +2,11 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
       - develop
   pull_request:
     branches:
-      - master
+      - main
       - develop
 env:
   FC: ifort
@@ -23,10 +23,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Install ifort
         uses: ./
-      - name: Check installation
+      - name: Test installation
         run: |
-          source /opt/intel/oneapi/setvars.sh
           ./scripts/test/test_install.sh /opt/intel/oneapi
+      - name: Test compile and run program
+        run: |
+          ./scripts/test/test_compile.sh
   test_windows:
     name: Test (Windows)
     runs-on: windows-latest
@@ -35,10 +37,13 @@ jobs:
         uses: actions/checkout@v3
       - name: Install ifort
         uses: ./
-      - name: Check installation
-        shell: cmd
+      - name: Test installation
         run: |
-          call "scripts/install/build_windows.bat"
-          powershell -command "./scripts/test/test_install.ps1 'C:\Program Files (x86)\Intel\oneAPI'"
+          ./scripts/test/test_install.ps1 "C:\Program Files (x86)\Intel\oneAPI"
+        env:
+          VS_VER: vs2022
+      - name: Test compile and run program
+        run: |
+          ./scripts/test/test_compile.ps1
         env:
           VS_VER: vs2022

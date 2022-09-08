@@ -1,3 +1,4 @@
+cmd.exe /c 'scripts/install/build_windows.bat'
 
 $path=$args[0]
 if (!($path)) {

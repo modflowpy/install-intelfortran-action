@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /opt/intel/oneapi/setvars.sh
+
 path="$1"
 if [ -z "$path" ]
 then
