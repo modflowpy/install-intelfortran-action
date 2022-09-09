@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+env:
+  FC: ifort
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./
+      - name: Test
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          ./scripts/test/test.sh /opt/intel/oneapi
+  test_windows:
+    name: Test (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./
+      - name: Test
+        shell: cmd
+        run: |
+          call "scripts/install/build_windows.bat"
+          powershell -command "./scripts/test/test.ps1 'C:\Program Files (x86)\Intel\oneAPI'"
+        env:
+          VS_VER: vs2022
