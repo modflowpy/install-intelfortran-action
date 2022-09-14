@@ -24,11 +24,10 @@ else
 fi
 
 ifort test/hw.f90 -o hw
-echo "Compile succeeded"
-
 output=$(./hw '2>&1')
 if [[ "$output" == *"hello world"* ]]
 then
+  echo "Compile succeeded"
   echo "$output"
 else
   echo "Unexpected output: $output"

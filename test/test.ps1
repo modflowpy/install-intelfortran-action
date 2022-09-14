@@ -20,10 +20,9 @@ if ((get-command "ifort" -ErrorAction SilentlyContinue) -eq $null) {
 }
 
 ifort test/hw.f90 -o hw
-write-output "Compile succeeded"
-
 $output=$(./hw)
 if ($output -match "hello world") {
+    write-output "Compile succeeded"
     write-output $output
 } else {
     write-output "Unexpected output: $output"
