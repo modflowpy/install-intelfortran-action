@@ -8,8 +8,6 @@ on:
     branches:
       - main
       - develop
-env:
-  FC: ifort
 jobs:
   test:
     name: Test
@@ -25,8 +23,7 @@ jobs:
         uses: ./
       - name: Test
         run: |
-          source /opt/intel/oneapi/setvars.sh
-          ./scripts/test/test.sh /opt/intel/oneapi
+          ./test/test.sh /opt/intel/oneapi
   test_windows:
     name: Test (Windows)
     runs-on: windows-latest
@@ -36,9 +33,5 @@ jobs:
       - name: Install
         uses: ./
       - name: Test
-        shell: cmd
         run: |
-          call "scripts/install/build_windows.bat"
-          powershell -command "./scripts/test/test.ps1 'C:\Program Files (x86)\Intel\oneAPI'"
-        env:
-          VS_VER: vs2022
+          ./test/test.ps1 "C:\Program Files (x86)\Intel\oneAPI"

@@ -19,7 +19,7 @@ if ((get-command "ifort" -ErrorAction SilentlyContinue) -eq $null) {
     write-output "Command ifort found"
 }
 
-ifort scripts/test/hw.f90 -o hw
+ifort test/hw.f90 -o hw
 write-output "Compile succeeded"
 
 $output=$(./hw)

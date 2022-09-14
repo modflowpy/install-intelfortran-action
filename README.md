@@ -1,7 +1,6 @@
 # install-intelfortran-action
 
 [![CI](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/commit.yml/badge.svg?branch=develop)](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/commit.yml)
-![Status](https://img.shields.io/badge/-under%20development-yellow?style=flat-square)
 
 An action to install the [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran compiler.
 
@@ -31,9 +30,7 @@ To use this action, add a step like the following to your workflow:
 
 ```yaml
 - name: Install Intel Fortran
-  uses: modflowpy/install-intelfortran-action@v0.0.1
+  uses: modflowpy/install-intelfortran-action@v1
 ```
 
-Environment variables must be set before the compiler can be used. On Linux or MacOS runners, run `source /opt/intel/oneapi/setvars.sh`. On Windows, run `call "scripts/install/build_windows.bat"` from a step with `shell: cmd`.
-
-**Note:** Environment variables are not preserved between steps, so the above must occur in the same step in which the `ifort` command is used.
+The action will configure [environment variables](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup.html) necessary to invoke `ifort` from subsequent workflow steps. Environment variables are not preserved between steps by default &mdash; here they are persisted by [appending to the `GITHUB_ENV` environment file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable).

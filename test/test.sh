@@ -23,7 +23,7 @@ else
   exit 1
 fi
 
-ifort scripts/test/hw.f90 -o hw
+ifort test/hw.f90 -o hw
 echo "Compile succeeded"
 
 output=$(./hw '2>&1')
