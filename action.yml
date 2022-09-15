@@ -103,7 +103,10 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
+        # set environment variables with script bundled with the install
         source /opt/intel/oneapi/setvars.sh
+        
+        # persist environment variables for the remainder of the workflow
         env | grep oneapi >> $GITHUB_ENV
 
     - name: Set resources (Windows)
@@ -145,11 +148,13 @@ runs:
       if: runner.os == 'Windows'
       shell: cmd
       run: |
+        :: set environment variables
         call "C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat" %VS_VER%
         for /f "tokens=* usebackq" %%f in (`dir /b "C:\Program Files (x86)\Intel\oneAPI\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST_VERSION=%%f"
         call "C:\Program Files (x86)\Intel\oneAPI\compiler\%LATEST_VERSION%\env\vars.bat"
-        set | findstr "oneAPI" >> %GITHUB_ENV%
-        set | findstr "vs" >> %GITHUB_ENV%
+        
+        :: persist environment variables for remainder of workflow
+        set | findstr /c:"oneAPI" >> %GITHUB_ENV%
       env:
         VS_VER: vs2022
 
