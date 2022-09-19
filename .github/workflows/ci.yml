@@ -9,26 +9,6 @@ on:
       - main
       - develop
 jobs:
-  debug:
-    name: Debug (no ifort)
-    runs-on: windows-latest
-    steps:
-      - name: Find linker
-        shell: cmd
-        run: |
-          where link
-  debug_ifort:
-    name: Debug (with ifort)
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install
-        uses: ./
-      - name: Find linker
-        shell: cmd
-        run: |
-          where link
   test:
     name: Test
     runs-on: ${{ matrix.os }}
@@ -39,13 +19,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install
+      - name: Install ifort
         uses: ./
-      - name: Test
+      - name: Test ifort
         if: runner.os != 'Windows'
         run: |
           ./test/test.sh /opt/intel/oneapi
-      - name: Test (Windows)
+      - name: Test ifort (Windows)
         if: runner.os == 'Windows'
         run: |
           ./test/test.ps1 "C:\Program Files (x86)\Intel\oneAPI"
@@ -56,9 +36,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        env: [ pip, miniconda, micromamba ]
     defaults:
       run:
-        shell: bash -l {0}
+        shell:
+          bash -l {0}
     steps:
       - name: Checkout action
         uses: actions/checkout@v3
@@ -67,14 +49,29 @@ jobs:
         with:
           repository: MODFLOW-USGS/modflow6
           path: modflow6
-      - name: Install Conda environment
+      - name: Install ifort
+        uses: ./
+      - name: Setup Python
+        if: matrix.env == 'pip'
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install Python dependencies
+        if: matrix.env == 'pip'
+        run: |
+          pip3 install -r test/requirements.txt
+      - name: Install miniconda environment
+        if: matrix.env == 'miniconda'
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: modflow6/environment.yml
+      - name: Install micromamba environment
+        if: matrix.env == 'micromamba'
         uses: mamba-org/provision-with-micromamba@main
         with:
           environment-file: modflow6/environment.yml
           cache-downloads: true
           cache-env: true
-      - name: Install ifort
-        uses: ./
       - name: Build modflow6
         if: runner.os != 'Windows'
         working-directory: modflow6
@@ -86,9 +83,7 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: modflow6
         run: |
-          # activating micromamba environment causes default link.exe to be found instead of MSVC linker
           export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
-          
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
