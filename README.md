@@ -7,10 +7,12 @@ An action to install the [Intel OneAPI](https://www.intel.com/content/www/us/en/
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Install location](#install-location)
   - [Linux & Mac](#linux--mac)
   - [Windows](#windows)
 - [Usage](#usage)
+- [Attribution](#attribution)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -45,4 +47,13 @@ Or from a `cmd` shell:
 
 ```
 set "PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64;%PATH%"
+```
+
+## Attribution
+
+This action is based on examples in the [OneApi repository](https://github.com/oneapi-src/oneapi-ci), which is copyrighted to Intel and distributed under the MIT license:
+
+```
+SPDX-FileCopyrightText: 2020 Intel Corporation
+SPDX-License-Identifier: MIT
 ```
