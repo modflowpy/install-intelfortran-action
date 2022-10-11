@@ -1,3 +1,19 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Contributing](#contributing)
+  - [Issues and features](#issues-and-features)
+  - [Pull requests](#pull-requests)
+  - [Commit messages](#commit-messages)
+    - [Commit Message Format](#commit-message-format)
+      - [Type](#type)
+      - [Subject](#subject)
+      - [Body](#body)
+      - [Footer](#footer)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Contributing
 
 Contributions to this repository are welcome. To make a contribution we ask that you follow a few guidelines.
@@ -16,9 +32,11 @@ If `develop` changes while your work is still in progress, please rebase and fix
 
 ## Commit messages
 
-To keep the repository's commit history consistent, commit messages must conform to the following formatting conventions.
+Commit messages must conform to the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This makes the commit history easier to follow and allows an automatically generated changelog.
 
-Each commit message consists of a **header**, a **body** and a **footer**.  The header includes a **type**, a **scope** and a **subject**:
+### Commit Message Format
+
+Each commit message consists of a **header**, a **body** and a **footer**. The **header** is mandatory, while **body** and **footer** are optional.
 
 ```
 <type>(<scope>): <subject>
@@ -28,11 +46,13 @@ Each commit message consists of a **header**, a **body** and a **footer**.  The 
 <footer>
 ```
 
-The **header** is mandatory and its **scope** is optional. The message **body** and **footer** are also optional.
+Note the header's format, which includes a **type**, a **scope** and a **subject**. Header **type** and **subject** are mandatory while header **scope** is optional.
 
-Please keep lines under 100 characters.
+No line of the commit message may be longer 100 characters! This makes messages easier to read on GitHub as well as in various `git` tools.
 
-### Type
+If a commit closes an issue, the footer should contain a [closing reference](https://help.github.com/articles/closing-issues-via-commit-messages/).
+
+#### Type
 
 Must be one of the following:
 
@@ -46,20 +66,7 @@ Must be one of the following:
 * **test**: Adding missing tests or correcting existing tests
 * **revert**: Reverts a previous commit
 
-### Scope
-The scope should be the name of the FloPy module/class affected (as perceived by the person reading the changelog generated from commit messages.
-
-There are currently a few exceptions to the "use module/class name" rule:
-
-* **release**: used when updating files prior to a release
-* **releasenotes**: used for updating the release notes
-* **readme**: used for updating the release notes in README.md
-* **changelog**: used for updating the release notes in CHANGELOG.md
-* none/empty string: useful for `style`, `test` and `refactor` changes that are done across all
-  packages (e.g. `style: add missing semicolons`) and for docs changes that are not related to a
-  specific package (e.g. `docs: fix typo in tutorial`).
-
-### Subject
+#### Subject
 
 The subject contains a succinct description of the change:
 
@@ -67,12 +74,12 @@ The subject contains a succinct description of the change:
 * don't capitalize the first letter
 * do not include a dot (.) at the end
 
-### Body
+#### Body
 
 Just as in the **subject**, use the imperative, present tense: "change" not "changed" nor "changes".
 The body should include the motivation for the change and contrast this with previous behavior.
 
-### Footer
+#### Footer
 
 The footer should contain any information about **Breaking Changes** and is also the place to reference GitHub issues that this commit **Closes**.
 
