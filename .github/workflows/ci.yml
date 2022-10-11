@@ -25,10 +25,16 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           ./test/test.sh /opt/intel/oneapi
-      - name: Test ifort (Windows)
+      - name: Test ifort (Windows, pwsh)
         if: runner.os == 'Windows'
         run: |
           ./test/test.ps1 "C:\Program Files (x86)\Intel\oneAPI"
+      - name: Test ifort (Windows, cmd)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          del hw
+          call "./test/test.bat"
   test_compile_modflow:
     name: Test compile modflow6
     runs-on: ${{ matrix.os }}

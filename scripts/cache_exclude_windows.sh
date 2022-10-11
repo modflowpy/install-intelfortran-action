@@ -1,0 +1,6 @@
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\compiler\lib\ia32_win"
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\bin\intel64_ia32"
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\lib\emu"
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\lib\oclfpga"
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\lib\ocloc"
+rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\windows\lib\x86"

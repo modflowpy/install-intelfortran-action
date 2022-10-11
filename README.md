@@ -37,7 +37,7 @@ To use this action, add a step like the following to your workflow:
 
 The action will configure [environment variables](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup.html) necessary to invoke `ifort` from subsequent workflow steps. GitHub Actions does not preserve environment variables between steps by default &mdash; this action persists them by [appending to the `GITHUB_ENV` environment file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable).
 
-**Note:** Python, Conda or Micromamba environments can modify the system path on Windows runners and cause the default `link.exe` (located at `C:\Program Files\Git\usr\bin`) to be found instead of the [MSVC linker](https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-170) required by `ifort`. To prevent this, prepend the MSVC linker's bin directory to the path. For instance, from `bash`:
+**Note:** Micromamba environments can modify the system path on Windows runners and cause the default `link.exe` (located at `C:\Program Files\Git\usr\bin`) to be found instead of the [MSVC linker](https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-170) required by `ifort`. To prevent this, prepend the MSVC linker's bin directory to the path. For instance, from `bash`:
 
 ```shell
 export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH

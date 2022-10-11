@@ -1,173 +1,100 @@
 name: Install Intel Fortran
-description: Install & cache Intel Fortran
+description: Install & cache Intel Fortran compiler and configure environment for its use
 runs:
   using: composite
   steps:
-    - name: Set install path (Linux & Mac)
+    - name: Set install path variables
       if: runner.os != 'Windows'
-      id: set-install-path
       shell: bash
       run: |
-        echo "::set-output name=install-path::/opt/intel/oneapi"
+        echo "ONEAPI_INSTALL_PATH=/opt/intel/oneapi" >> $GITHUB_ENV
 
-    - name: Set resources (Linux)
+    - name: Set install path variables (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        echo "ONEAPI_INSTALL_PATH=C:\Program Files (x86)\Intel\oneAPI" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Set install resource variables (Linux)
       if: runner.os == 'Linux'
-      id: set-resources-linux
       shell: bash
       run: |
-        echo "::set-output name=hpckit_url::https://registrationcenter-download.intel.com/akdlm/irc_nas/18679/l_HPCKit_p_2022.2.0.191_offline.sh"
-        echo "::set-output name=components::intel.oneapi.lin.ifort-compiler"
+        echo "ONEAPI_LINUX_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18679/l_HPCKit_p_2022.2.0.191_offline.sh" >> $GITHUB_ENV
+        echo "ONEAPI_LINUX_COMPONENTS=intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
+
+    - name: Set install resource variables (Mac)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        echo "ONEAPI_MAC_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18681/m_HPCKit_p_2022.2.0.158_offline.dmg" >> $GITHUB_ENV
+        echo "ONEAPI_MAC_COMPONENTS=intel.oneapi.mac.ifort-compiler" >> $GITHUB_ENV
+
+    - name: Set install resource variables (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        echo "ONEAPI_WINDOWS_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18680/w_HPCKit_p_2022.2.0.173_offline.exe" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        echo "ONEAPI_WINDOWS_COMPONENTS=intel.oneapi.win.ifort-compiler" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Cache ifort (Linux)
       if: runner.os == 'Linux'
-      id: cache-install-linux
       uses: actions/cache@v3
       with:
-        path: ${{ steps.set-install-path.outputs.install-path }}
-        key: ifort-${{ runner.os }}-${{ steps.set-resources-linux.outputs.hpckit_url }}-${{ steps.set-resources-linux.outputs.components }}
+        path: ${{ env.ONEAPI_INSTALL_PATH }}
+        key: ifort-${{ runner.os }}-${{ env.ONEAPI_LINUX_URL }}-${{ env.ONEAPI_LINUX_COMPONENTS }}
+
+    - name: Cache ifort (Mac)
+      if: runner.os == 'macOS'
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.ONEAPI_INSTALL_PATH }}
+        key: ifort-${{ runner.os }}-${{ env.ONEAPI_MAC_URL }}-${{ env.ONEAPI_MAC_COMPONENTS }}
+
+    - name: Cache ifort (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/cache@v3
+      with:
+        path: C:\Program Files (x86)\Intel\oneAPI
+        key: ifort-${{ runner.os }}-${{ env.ONEAPI_WINDOWS_URL }}-${{ env.ONEAPI_WINDOWS_COMPONENTS }}
 
     - name: Install ifort (Linux)
       if: runner.os == 'Linux' && steps.cache-install-linux.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        # SPDX-FileCopyrightText: 2020 Intel Corporation
-        # SPDX-License-Identifier: MIT
-        curl --output webimage.sh --url "$HPCKIT_URL" --retry 5 --retry-delay 5
-        chmod +x webimage.sh
-        ./webimage.sh -x -f webimage_extracted --log extract.log
-        rm -rf webimage.sh
-        WEBIMAGE_NAME=$(ls -1 webimage_extracted/)
-        if [ -z "$COMPONENTS" ]; then
-          sudo webimage_extracted/"$WEBIMAGE_NAME"/bootstrapper -s --action install --eula=accept --log-dir=.
-          installer_exit_code=$?
-        else
-          sudo webimage_extracted/"$WEBIMAGE_NAME"/bootstrapper -s --action install --components="$COMPONENTS" --eula=accept --log-dir=.
-          installer_exit_code=$?
-        fi
-        rm -rf webimage_extracted
-        exit $installer_exit_code
-      env:
-        HPCKIT_URL: ${{ steps.set-resources-linux.outputs.hpckit_url }}
-        COMPONENTS: ${{ steps.set-resources-linux.outputs.components }}
-
-    - name: Exclude unused files from cache (Linux)
-      shell: bash
-      if: runner.os == 'Linux' && steps.cache-install-linux.outputs.cache-hit != 'true'
-      run: |
-        # SPDX-FileCopyrightText: 2020 Intel Corporation
-        # SPDX-License-Identifier: MIT
-        LATEST_VERSION=$(ls -1 /opt/intel/oneapi/compiler/ | grep -v latest | sort | tail -1)
-        sudo rm -rf /opt/intel/oneapi/compiler/"$LATEST_VERSION"/linux/compiler/lib/ia32_lin
-        sudo rm -rf /opt/intel/oneapi/compiler/"$LATEST_VERSION"/linux/bin/ia32
-        sudo rm -rf /opt/intel/oneapi/compiler/"$LATEST_VERSION"/linux/lib/emu
-        sudo rm -rf /opt/intel/oneapi/compiler/"$LATEST_VERSION"/linux/lib/oclfpga
-
-    - name: Set resources (Mac)
-      if: runner.os == 'macOS'
-      id: set-resources-macos
-      shell: bash
-      run: |
-        echo "::set-output name=hpckit_url::https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18681/m_HPCKit_p_2022.2.0.158_offline.dmg"
-        echo "::set-output name=components::intel.oneapi.mac.ifort-compiler"
-
-    - name: Cache ifort (Mac)
-      if: runner.os == 'macOS'
-      id: cache-install-macos
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.set-install-path.outputs.install-path }}
-        key: ifort-${{ runner.os }}-${{ steps.set-resources-macos.outputs.hpckit_url }}-${{ steps.set-resources-macos.outputs.components }}
+        cd ${{ github.action_path }}
+        ./scripts/install_linux.sh ${{ env.ONEAPI_LINUX_URL }} ${{ env.ONEAPI_LINUX_COMPONENTS }}
 
     - name: Install ifort (Mac)
       if: runner.os == 'macOS' && steps.cache-install-macos.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        # SPDX-FileCopyrightText: 2020 Intel Corporation
-        # SPDX-License-Identifier: MIT
-        curl --output webimage.dmg --url "$HPCKIT_URL" --retry 5 --retry-delay 5
-        hdiutil attach webimage.dmg
-        if [ -z "$COMPONENTS" ]; then
-          sudo /Volumes/"$(basename "$HPCKIT_URL" .dmg)"/bootstrapper.app/Contents/MacOS/bootstrapper -s --action install --eula=accept --continue-with-optional-error=yes --log-dir=.
-          installer_exit_code=$?
-        else
-          sudo /Volumes/"$(basename "$HPCKIT_URL" .dmg)"/bootstrapper.app/Contents/MacOS/bootstrapper -s --action install --components="$COMPONENTS" --eula=accept --log-dir=.
-          installer_exit_code=$?
-        fi
-        hdiutil detach /Volumes/"$(basename "$HPCKIT_URL" .dmg)" -quiet
-        exit $installer_exit_code
-      env:
-        HPCKIT_URL: ${{ steps.set-resources-macos.outputs.hpckit_url }}
-        COMPONENTS: ${{ steps.set-resources-macos.outputs.components }}
-
-    - name: Configure environment (Linux & Mac)
-      if: runner.os != 'Windows'
-      shell: bash
-      run: |
-        # set environment variables with script bundled with the install
-        source /opt/intel/oneapi/setvars.sh
-        
-        # persist environment variables for the remainder of the workflow
-        env | grep oneapi >> $GITHUB_ENV
-
-    - name: Set resources (Windows)
-      if: runner.os == 'Windows'
-      id: set-resources-windows
-      shell: pwsh
-      run: |
-        echo "::set-output name=hpckit_url::https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18680/w_HPCKit_p_2022.2.0.173_offline.exe"
-        echo "::set-output name=components::intel.oneapi.win.ifort-compiler"
-
-    - name: Cache ifort (Windows)
-      if: runner.os == 'Windows'
-      id: cache-install-windows
-      uses: actions/cache@v3
-      with:
-        path: C:\Program Files (x86)\Intel\oneAPI
-        key: ifort-${{ runner.os }}-${{ steps.set-resources-windows.outputs.hpckit_url }}-${{ steps.set-resources-windows.outputs.components }}
+        cd ${{ github.action_path }}
+        ./scripts/install_mac.sh ${{ env.ONEAPI_MAC_URL }} ${{ env.ONEAPI_MAC_COMPONENTS }}
 
     - name: Install ifort (Windows)
       if: runner.os == 'Windows' && steps.cache-install-windows.outputs.cache-hit != 'true'
       shell: cmd
       run: |
-        REM SPDX-FileCopyrightText: 2022 Intel Corporation
-        REM SPDX-License-Identifier: MIT
-        curl.exe --output %TEMP%\webimage.exe --url %HPCKIT_URL% --retry 5 --retry-delay 5
-        start /b /wait %TEMP%\webimage.exe -s -x -f webimage_extracted --log extract.log
-        del %TEMP%\webimage.exe
-        if "%COMPONENTS%"=="" (
-          webimage_extracted\bootstrapper.exe -s --action install --eula=accept -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0 --log-dir=.
-        ) else (
-          webimage_extracted\bootstrapper.exe -s --action install --components=%COMPONENTS% --eula=accept -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0 --log-dir=.
-        )
-        rd /s/q "webimage_extracted"
-      env:
-        HPCKIT_URL: ${{ steps.set-resources-windows.outputs.hpckit_url }}
-        COMPONENTS: ${{ steps.set-resources-windows.outputs.components }}
-    
+        call "%GITHUB_ACTION_PATH%\scripts\install_windows.bat" %ONEAPI_WINDOWS_URL% %ONEAPI_WINDOWS_COMPONENTS%
+
+    - name: Exclude unused files from cache (Linux)
+      if: runner.os == 'Linux' && steps.cache-install-linux.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        ./scripts/cache_exclude_linux.sh
+
+    - name: Configure environment (Linux & Mac)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        env | grep oneapi >> $GITHUB_ENV
+
     - name: Configure environment (Windows)
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        :: set environment variables
-        call "C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat" %VS_VER%
-        for /f "tokens=* usebackq" %%f in (`dir /b "C:\Program Files (x86)\Intel\oneAPI\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST_VERSION=%%f"
-        call "C:\Program Files (x86)\Intel\oneAPI\compiler\%LATEST_VERSION%\env\vars.bat"
-        
-        :: persist environment variables for remainder of workflow
+        call "C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat"
+        call "C:\Program Files (x86)\Intel\oneAPI\compiler\latest\env\vars.bat"
         set | findstr /c:"oneAPI" >> %GITHUB_ENV%
-      env:
-        VS_VER: vs2022
-
-    - name: Exclude unused files from cache (Windows)
-      shell: bash
-      if: runner.os == 'Windows' && steps.cache-install-windows.outputs.cache-hit != 'true'
-      run: |
-        # SPDX-FileCopyrightText: 2020 Intel Corporation
-        # SPDX-License-Identifier: MIT
-        LATEST_VERSION=$(ls -1 "C:\Program Files (x86)\Intel\oneAPI\compiler" | grep -v latest | sort | tail -1)
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\compiler\lib\ia32_win"
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\bin\intel64_ia32"
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\lib\emu"
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\lib\oclfpga"
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\lib\ocloc"
-        rm -rf "C:\Program Files (x86)\Intel\oneAPI\compiler\'$LATEST_VERSION'\windows\lib\x86"
