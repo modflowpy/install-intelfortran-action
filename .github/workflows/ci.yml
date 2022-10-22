@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - develop
+env:
+  FC: ifort
 jobs:
   test:
     name: Test
@@ -16,74 +18,67 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        path: [ absolute, relative, tilde, default ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install ifort
-        uses: ./
-      - name: Test ifort
+      - name: Set bin path
         if: runner.os != 'Windows'
         run: |
-          ./test/test.sh /opt/intel/oneapi
-      - name: Test ifort (Windows)
+          if [ "${{ matrix.path }}" == "absolute" ]; then
+            bindir="$HOME/.local/bin"
+          elif [ "${{ matrix.path }}" == "relative" ]; then
+            bindir="bin"
+          elif [ "${{ matrix.path }}" == "tilde" ]; then
+            bindir="~/.local/bin"
+          else
+            # action's default location
+            bindir="~/.local/bin/ifort"
+          fi
+
+          echo "TEST_BINDIR=$bindir" >> $GITHUB_ENV
+      - name: Set bin path (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          ./test/test.ps1 "C:\Program Files (x86)\Intel\oneAPI"
-  test_compile_modflow:
-    name: Test compile modflow6
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        env: [ pip, miniconda, micromamba ]
-    defaults:
-      run:
-        shell:
-          bash -l {0}
-    steps:
-      - name: Checkout action
-        uses: actions/checkout@v3
-      - name: Checkout modflow6
-        uses: actions/checkout@v3
-        with:
-          repository: MODFLOW-USGS/modflow6
-          path: modflow6
+          if ("${{ matrix.path }}" -eq "absolute") {
+            # $bindir = "C:\Users\runneradmin\.local\bin"
+            $bindir = "C:\Program Files (x86)\Intel\oneAPI"
+          } elseif ("${{ matrix.path }}" -eq "relative") {
+            $bindir = "bin"
+          } elseif ("${{ matrix.path }}" -eq "tilde") {
+            $bindir = "~/.local/bin"
+          } else {
+            # actions's default location
+            $bindir = "~/.local/bin/ifort"
+          }
+
+          echo "TEST_BINDIR=$bindir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Install ifort
+        if: matrix.path != 'default'
         uses: ./
-      - name: Setup Python
-        if: matrix.env == 'pip'
-        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
-      - name: Install Python dependencies
-        if: matrix.env == 'pip'
-        run: |
-          pip3 install -r test/requirements.txt
-      - name: Install miniconda environment
-        if: matrix.env == 'miniconda'
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          environment-file: modflow6/environment.yml
-      - name: Install micromamba environment
-        if: matrix.env == 'micromamba'
-        uses: mamba-org/provision-with-micromamba@main
-        with:
-          environment-file: modflow6/environment.yml
-          cache-downloads: true
-          cache-env: true
-      - name: Build modflow6
+          path: ${{ env.TEST_BINDIR }}
+      - name: Install ifort
+        if: matrix.path == 'default'
+        uses: ./
+      - name: Test ifort (Linux & Mac)
         if: runner.os != 'Windows'
-        working-directory: modflow6
         run: |
-          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
-          meson compile -v -C builddir
-          meson install -C builddir
-      - name: Build modflow6 (Windows)
+          ./test/test.sh ${{ env.TEST_BINDIR }}
+      # TODO: reenable if ifort configuration for bash resolved on Windows
+      # - name: Test ifort (Windows bash)
+      #   if: runner.os == 'Windows'
+      #   shell: bash
+      #   run: |
+      #     ./test/test.sh "${{ env.TEST_BINDIR }}"
+      - name: Test ifort (Windows pwsh)
         if: runner.os == 'Windows'
-        working-directory: modflow6
+        shell: pwsh
         run: |
-          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
-          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
-          meson compile -v -C builddir
-          meson install -C builddir
+          ./test/test.ps1 "${{ env.TEST_BINDIR }}"
+      - name: Test ifort (Windows cmd)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          call "./test/test.bat"
