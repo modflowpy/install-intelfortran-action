@@ -38,6 +38,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+          cache: 'pip'
       - name: Install Python dependencies
         if: matrix.env == 'pip'
         run: |
@@ -65,21 +66,34 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
-      - name: Add micromamba bindir to path (Windows)
-        if: runner.os == 'Windows'
+      - name: Add conda bindirs to path (Windows)
+        if: runner.os == 'Windows' && matrix.env == 'micromamba'
         shell: pwsh
         run: |
+          # adding micromamba scripts dir to system path
           $mamba_bin = "C:\Users\runneradmin\micromamba-root\envs\modflow6\Scripts"
+      
           if (Test-Path $mamba_bin) {
-            # ifort/micromamba interfere with one another's PATH settings
+            echo "adding micromamba scripts dir to path: $mamba_bin"
             echo $mamba_bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           }
+      - name: Build modflow6 (Windows bash)
+        if: runner.os == 'Windows'
+        working-directory: modflow6
+        shell: bash -l {0}
+        run: |
+          # make sure MSVC linker is found
+          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
+          
+          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
+          meson compile -v -C builddir
+          meson install -C builddir
       - name: Build modflow6 (Windows pwsh)
         if: runner.os == 'Windows'
         working-directory: modflow6
         shell: pwsh
         run: |
-          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
+          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin --wipe
           meson compile -v -C builddir
           meson install -C builddir
       - name: Build modflow6 (Windows cmd)
@@ -87,6 +101,6 @@ jobs:
         working-directory: modflow6
         shell: cmd /C call {0}
         run: |
-          meson setup builddir -Ddebug=false --prefix=%CD% --libdir=bin
+          meson setup builddir -Ddebug=false --prefix=%CD% --libdir=bin --wipe
           meson compile -v -C builddir
           meson install -C builddir

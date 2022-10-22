@@ -66,12 +66,31 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           ./test/test.sh ${{ env.TEST_BINDIR }}
-      # TODO: reenable if ifort configuration for bash resolved on Windows
-      # - name: Test ifort (Windows bash)
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     ./test/test.sh "${{ env.TEST_BINDIR }}"
+      - name: Test ifort (Windows bash)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # make sure MSVC linker is found
+          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
+          
+          if command -v ifort &> /dev/null
+          then
+            echo "ifort found"
+          else
+            echo "ifort not available"
+            exit 1
+          fi
+
+          ifort test/hw.f90 -o hw
+          output=$(./hw '2>&1')
+          if [[ "$output" == *"hello world"* ]]
+          then
+            echo "compile succeeded"
+            echo "$output"
+          else
+            echo "unexpected output: $output"
+            exit 1
+          fi
       - name: Test ifort (Windows pwsh)
         if: runner.os == 'Windows'
         shell: pwsh
