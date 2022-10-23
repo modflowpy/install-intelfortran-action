@@ -50,7 +50,7 @@ runs:
         echo "INTEL_HPCKIT_INSTALL_PATH=$normalized" | Out-File -FilePath "$env:GITHUB_ENV" -Encoding utf8 -Append
         md -Force "$normalized"  
 
-    - name: Set environment variables
+    - name: Set HPC kit environment variables
       shell: bash
       run: |
         echo "setting toolkit variables"
@@ -68,8 +68,7 @@ runs:
         version="2022.3"
         echo "using toolkit version $version"
         echo "INTEL_HPCKIT_VERSION=$version" >> $GITHUB_ENV
-        echo "FC=ifort" >> $GITHUB_ENV
-
+        
     - name: Hide GNU tar
       if: runner.os == 'windows'
       shell: bash
@@ -136,6 +135,7 @@ runs:
         echo "adding ifort compiler bin dir '$bindir' to path"
         echo "$bindir" >> $GITHUB_PATH
         echo "INTEL_COMPILER_BIN_PATH=$bindir" >> $GITHUB_ENV
+        echo "FC=ifort" >> $GITHUB_ENV
 
     - name: Configure system path
       if: runner.os == 'Windows'
@@ -144,8 +144,9 @@ runs:
         :: add compiler bin dir to path
         set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\latest\windows\bin\intel64
         echo adding ifort compiler bin dir '%bindir%' to path
-        echo %bindir%>>"%GITHUB_PATH"
-        echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV"
+        echo %bindir%>>"%GITHUB_PATH%"
+        echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
+        echo FC=ifort>>"%GITHUB_ENV%"
         
         :: prepend MSVC bindir to path
         set bindir=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64
