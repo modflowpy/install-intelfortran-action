@@ -53,20 +53,20 @@ runs:
     - name: Set HPC kit environment variables
       shell: bash
       run: |
-        echo "setting toolkit variables"
+        echo "setting HPC toolkit variables"
+        version="2022.3.0"
         if [ "$RUNNER_OS" == "Linux" ]; then
-          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18679/l_HPCKit_p_2022.2.0.191_offline.sh" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18856/l_HPCKit_p_$version.8751_offline.sh" >> $GITHUB_ENV
           echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18681/m_HPCKit_p_2022.2.0.158_offline.dmg" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18866/m_HPCKit_p_$version.8685_offline.dmg" >> $GITHUB_ENV
           echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.mac.ifort-compiler" >> $GITHUB_ENV
         else
-          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/18680/w_HPCKit_p_2022.2.0.173_offline.exe" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18857/w_HPCKit_p_$version.9564_offline.exe" >> $GITHUB_ENV
           echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.win.ifort-compiler" >> $GITHUB_ENV
         fi
  
-        version="2022.3"
-        echo "using toolkit version $version"
+        echo "using HPC toolkit version $version"
         echo "INTEL_HPCKIT_VERSION=$version" >> $GITHUB_ENV
         
     - name: Hide GNU tar
@@ -142,7 +142,8 @@ runs:
       shell: cmd
       run: |
         :: add compiler bin dir to path
-        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\latest\windows\bin\intel64
+        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
+        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\windows\bin\intel64
         echo adding ifort compiler bin dir '%bindir%' to path
         echo %bindir%>>"%GITHUB_PATH%"
         echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
@@ -159,7 +160,7 @@ runs:
       run: |
         # configure oneAPI environment
         # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup/use-the-setvars-script-with-linux-or-macos.html#use-the-setvars-script-with-linux-or-macos
-        echo "configuring Intel environment"
+        echo "configuring oneAPI environment"
         source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
         
         echo "persisting oneAPI environment"
@@ -172,7 +173,8 @@ runs:
         echo configuring oneAPI environment
         call "%INTEL_HPCKIT_INSTALL_PATH%\setvars-vcvarsall.bat"
         :: this script fails when install location is not the default
-        call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\2022.1.0\env\vars.bat"
+        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
+        call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\env\vars.bat"
         
         echo persisting oneAPI environment
         set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"

@@ -66,7 +66,7 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
-      - name: Add conda bindirs to path (Windows)
+      - name: Add micromamba Scripts dir to path (Windows)
         if: runner.os == 'Windows' && matrix.env == 'micromamba'
         shell: pwsh
         run: |
