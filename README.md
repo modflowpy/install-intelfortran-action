@@ -66,6 +66,7 @@ A few additional variables are also set:
 - `INTEL_HPCKIT_COMPONENT` is the compiler component installed (e.g. `intel.oneapi.win.ifort-compiler` for Windows)
 - `INTEL_COMPILER_BIN_PATH` is the location of compiler executables (this is equivalent to `$HPCKIT_INSTALL_PATH/compilers/latest/<mac, linux, or windows>/bin/intel64`, substituting the proper OS)
 - `INTEL_HPCKIT_VERSION` is the oneAPI HPC toolkit version number used (currently `2022.3`)
+- `FC` is set to `ifort`
 
 **Note:** GitHub Actions does not preserve environment variables between steps by default &mdash; this action persists them via the [`GITHUB_ENV` environment file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable).
 

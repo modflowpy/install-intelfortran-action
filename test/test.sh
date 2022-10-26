@@ -18,7 +18,6 @@ fi
 if command -v ifort &> /dev/null
 then
   echo "ifort found"
-  ifort -h
 else
   echo "ifort not available"
   exit 1
