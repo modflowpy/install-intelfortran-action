@@ -57,13 +57,13 @@ runs:
         version="2022.3.0"
         if [ "$RUNNER_OS" == "Linux" ]; then
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18856/l_HPCKit_p_$version.8751_offline.sh" >> $GITHUB_ENV
-          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.lin.mpi.devel:intel.oneapi.lin.dpcpp-cpp-compiler-pro:intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18866/m_HPCKit_p_$version.8685_offline.dmg" >> $GITHUB_ENV
-          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.mac.ifort-compiler" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.mac.cpp-compiler:intel.oneapi.mac.ifort-compiler" >> $GITHUB_ENV
         else
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18857/w_HPCKit_p_$version.9564_offline.exe" >> $GITHUB_ENV
-          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.win.ifort-compiler" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.win.mpi.devel:intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler" >> $GITHUB_ENV
         fi
  
         echo "using HPC toolkit version $version"
