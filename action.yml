@@ -136,6 +136,7 @@ runs:
         echo "$bindir" >> $GITHUB_PATH
         echo "INTEL_COMPILER_BIN_PATH=$bindir" >> $GITHUB_ENV
         echo "FC=ifort" >> $GITHUB_ENV
+        echo "ONEAPI_ROOT=$INTEL_HPCKIT_INSTALL_PATH" >> $GITHUB_ENV
 
     - name: Configure system path
       if: runner.os == 'Windows'
@@ -148,6 +149,7 @@ runs:
         echo %bindir%>>"%GITHUB_PATH%"
         echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
         echo FC=ifort>>"%GITHUB_ENV%"
+        echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
         
         :: prepend MSVC bindir to path
         set bindir=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64

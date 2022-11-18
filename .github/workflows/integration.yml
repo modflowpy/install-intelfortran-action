@@ -41,8 +41,8 @@ jobs:
           cache: 'pip'
       - name: Install Python dependencies
         if: matrix.env == 'pip'
-        run: |
-          pip3 install -r test/requirements.txt
+        shell: bash
+        run: pip install -r test/requirements.txt
       - name: Install miniconda environment
         if: matrix.env == 'miniconda'
         uses: conda-incubator/setup-miniconda@v2
@@ -60,7 +60,15 @@ jobs:
         with:
           path: ${{ runner.os != 'Windows' && 'bin' || 'C:\Program Files (x86)\Intel\oneAPI' }}
       - name: Build modflow6 (Linux & Mac)
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.env == 'pip'
+        working-directory: modflow6
+        shell: bash
+        run: |
+          meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
+          meson compile -v -C builddir
+          meson install -C builddir
+      - name: Build modflow6 (Linux & Mac)
+        if: runner.os != 'Windows' && matrix.env != 'pip'
         working-directory: modflow6
         run: |
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
