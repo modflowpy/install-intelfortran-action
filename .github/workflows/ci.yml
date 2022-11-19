@@ -52,19 +52,19 @@ jobs:
           }
 
           echo "TEST_BINDIR=$bindir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Install ifort
+      - name: Install compilers
         if: matrix.path != 'default'
         uses: ./
         with:
           path: ${{ env.TEST_BINDIR }}
-      - name: Install ifort
+      - name: Install compilers
         if: matrix.path == 'default'
         uses: ./
-      - name: Test ifort (Linux & Mac)
+      - name: Test compilers (Linux & Mac)
         if: runner.os != 'Windows'
         run: |
           ./test/test.sh ${{ env.TEST_BINDIR }}
-      - name: Test ifort (Windows bash)
+      - name: Test compilers (Windows bash)
         if: runner.os == 'Windows'
         shell: bash
         run: |
@@ -89,12 +89,12 @@ jobs:
             echo "unexpected output: $output"
             exit 1
           fi
-      - name: Test ifort (Windows pwsh)
+      - name: Test compilers (Windows pwsh)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           ./test/test.ps1 "${{ env.TEST_BINDIR }}"
-      - name: Test ifort (Windows cmd)
+      - name: Test compilers (Windows cmd)
         if: runner.os == 'Windows'
         shell: cmd
         run: |

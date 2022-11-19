@@ -31,7 +31,7 @@ runs:
         echo "INTEL_HPCKIT_INSTALL_PATH=$normalized" >> $GITHUB_ENV
         mkdir -p "$normalized"
 
-    - name: Set install path
+    - name: Set install path (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
@@ -57,13 +57,13 @@ runs:
         version="2022.3.0"
         if [ "$RUNNER_OS" == "Linux" ]; then
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18856/l_HPCKit_p_$version.8751_offline.sh" >> $GITHUB_ENV
-          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.lin.mpi.devel:intel.oneapi.lin.dpcpp-cpp-compiler-pro:intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.lin.dpcpp-cpp-compiler-pro:intel.oneapi.lin.ifort-compiler" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18866/m_HPCKit_p_$version.8685_offline.dmg" >> $GITHUB_ENV
           echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.mac.cpp-compiler:intel.oneapi.mac.ifort-compiler" >> $GITHUB_ENV
         else
           echo "INTEL_HPCKIT_INSTALLER_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18857/w_HPCKit_p_$version.9564_offline.exe" >> $GITHUB_ENV
-          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.win.mpi.devel:intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler" >> $GITHUB_ENV
+          echo "INTEL_HPCKIT_COMPONENTS=intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler" >> $GITHUB_ENV
         fi
  
         echo "using HPC toolkit version $version"
@@ -90,7 +90,7 @@ runs:
         # restore GNU tar
         mv "$RUNNER_TEMP\tar.exe" 'C:\Program Files\Git\usr\bin\tar.exe'
 
-    - name: Install Intel fortran
+    - name: Install compilers
       if: runner.os != 'Windows' && steps.cache-ifort.outputs.cache-hit != 'true'
       shell: bash
       run: |
@@ -98,7 +98,7 @@ runs:
         os=$(echo $RUNNER_OS | tr '[:upper:]' '[:lower:]')
         "${{ github.action_path }}/scripts/install_$os.sh" "${{ env.INTEL_HPCKIT_INSTALL_PATH }}" "${{ env.INTEL_HPCKIT_INSTALLER_URL }}" "${{ env.INTEL_HPCKIT_COMPONENTS }}"
 
-    - name: Install Intel fortran
+    - name: Install compilers (Windows)
       if: runner.os == 'Windows' && steps.cache-ifort.outputs.cache-hit != 'true'
       shell: cmd
       run: |
@@ -136,9 +136,10 @@ runs:
         echo "$bindir" >> $GITHUB_PATH
         echo "INTEL_COMPILER_BIN_PATH=$bindir" >> $GITHUB_ENV
         echo "FC=ifort" >> $GITHUB_ENV
+        echo "CC=icc" >> $GITHUB_ENV
         echo "ONEAPI_ROOT=$INTEL_HPCKIT_INSTALL_PATH" >> $GITHUB_ENV
 
-    - name: Configure system path
+    - name: Configure system path (Windows)
       if: runner.os == 'Windows'
       shell: cmd
       run: |
@@ -149,6 +150,7 @@ runs:
         echo %bindir%>>"%GITHUB_PATH%"
         echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
         echo FC=ifort>>"%GITHUB_ENV%"
+        echo CC=icl>>"%GITHUB_ENV%"
         echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
         
         :: prepend MSVC bindir to path
