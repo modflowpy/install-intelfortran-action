@@ -20,24 +20,24 @@ if ((get-command "ifort" -ErrorAction SilentlyContinue) -eq $null) {
     ifort /QV
 }
 
-if ((get-command "icpc" -ErrorAction SilentlyContinue) -eq $null) {
-    write-output "icpc not available"
+if ((get-command "icl" -ErrorAction SilentlyContinue) -eq $null) {
+    write-output "icl not available"
     exit 1
 } else {
-    write-output "icpc found"
-    icc /QV
+    write-output "icl found"
+    icl /QV
 }
 
-if ((get-command "icpx" -ErrorAction SilentlyContinue) -eq $null) {
-    write-output "icpx not available"
+if ((get-command "icx" -ErrorAction SilentlyContinue) -eq $null) {
+    write-output "icx not available"
     exit 1
 } else {
-    write-output "icpx found"
+    write-output "icx found"
     icx /QV
 }
 
-ifort test/hw.f90 -o hw
-$output=$(./hw)
+ifort test/hw.f90 -o hw.exe
+$output=$(./hw.exe)
 if ($output -match "hello world") {
     write-output "ifort compile succeeded"
     write-output $output
@@ -46,9 +46,9 @@ if ($output -match "hello world") {
     exit 1
 }
 
-sudo rm -rf hw
-icl test/hw.cpp -o hw
-$output=$(./hw)
+rm -Force hw.exe
+icl test/hw.cpp -o hw.exe
+$output=$(./hw.exe)
 if ($output -match "hello world") {
     write-output "icl compile succeeded"
     write-output $output
@@ -57,9 +57,9 @@ if ($output -match "hello world") {
     exit 1
 }
 
-sudo rm -rf hw
-icx test/hw.cpp -o hw
-$output=$(./hw)
+rm -Force hw.exe
+icx test/hw.cpp -o hw.exe
+$output=$(./hw.exe)
 if ($output -match "hello world") {
     write-output "icx compile succeeded"
     write-output $output

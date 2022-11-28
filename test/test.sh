@@ -17,17 +17,21 @@ fi
 
 if command -v ifort &> /dev/null
 then
-  echo "ifort found"
+  echo "Fortran classic compiler found"
 else
-  echo "ifort not available"
+  echo "Fortran classic compiler not available"
   exit 1
 fi
 
-if command -v icpc &> /dev/null
-then
-  echo "icpc found"
+if [[ ( "$OSTYPE" == "cygwin" ) || ( "$OSTYPE" == "msys" ) || ( "$OSTYPE" == "win32" ) ]]; then
+  cmd=$(command -v icl)
 else
-  echo "icpc not available"
+  cmd=$(command -v icpc)
+fi
+if [ "$cmd" ]; then
+  echo "C/C++ classic compiler found"
+else
+  echo "C/C++ classic compiler not available"
   exit 1
 fi
 
@@ -47,22 +51,27 @@ ifort test/hw.f90 -o hw
 output=$(./hw '2>&1')
 if [[ "$output" == *"hello world"* ]]
 then
-  echo "ifort compile succeeded"
+  echo "Fortran program compilation succeeded"
   echo "$output"
 else
-  echo "ifort unexpected output: $output"
+  echo "Fortran program gave unexpected output: $output"
   exit 1
 fi
 
 sudo rm -rf hw
-icpc test/hw.cpp -o hw
-output=$(./hw '2>&1')
+if [[ ( "$OSTYPE" == "cygwin" ) || ( "$OSTYPE" == "msys" ) || ( "$OSTYPE" == "win32" ) ]]; then
+  icl test/hw.cpp -o hw.exe
+  output=$(./hw.exe '2>&1')
+else
+  icpc test/hw.cpp -o hw
+  output=$(./hw '2>&1')
+fi
 if [[ "$output" == *"hello world"* ]]
 then
-  echo "icpc compile succeeded"
+  echo "C++ program compilation succeeded"
   echo "$output"
 else
-  echo "icpc unexpected output: $output"
+  echo "C++ program gave unexpected output: $output"
   exit 1
 fi
 
