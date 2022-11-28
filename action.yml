@@ -81,7 +81,7 @@ runs:
       uses: martijnhols/actions-cache/restore@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: ifort-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
 
     - name: Restore GNU tar
       if: runner.os == 'windows'
@@ -110,7 +110,7 @@ runs:
       uses: martijnhols/actions-cache/save@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: ifort-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
 
     - name: Configure system path
       if: runner.os != 'Windows'
