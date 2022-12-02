@@ -80,8 +80,10 @@ There are a few things to be aware of when using this action on Windows runners.
 While this action supports all three operating systems, it is currently unable to fully configure the compiler environment for the `bash` shell on Windows &mdash; using `bash` will produce `link: unknown option -- s` errors caused by a failure to find the MSVC linker. Windows runners must either invoke `ifort` from a step using the `cmd` or `pwsh` shell, or add the MSVC bin directory to the path before invoking `ifort` from `bash`, e.g.:
 
 ```shell
-export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
+export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.34.31933/bin/Hostx64/x64":$PATH
 ```
+
+**Note:** the MSVC versions available may change without warning. This repository runs [a CI workflow](.github/workflows/runners.yml) to check available MSVC versions, but the action must currently be manually patched &mdash; please file an issue if a change goes unnoticed by this repo's maintainers.
 
 ### Install location
 

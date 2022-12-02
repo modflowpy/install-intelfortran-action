@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - develop
+      - ci-diagnose*
   pull_request:
     branches:
       - main
@@ -87,17 +88,21 @@ jobs:
           }
       - name: Build modflow6 (Windows bash)
         if: runner.os == 'Windows'
+        continue-on-error: true
         working-directory: modflow6
         shell: bash -l {0}
         run: |
           # make sure MSVC linker is found
-          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
+          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.34.31933/bin/Hostx64/x64":$PATH
           
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
+      - name: Show meson build log
+        run: cat modflow6/builddir/meson-logs/meson-log.txt
       - name: Build modflow6 (Windows pwsh)
         if: runner.os == 'Windows'
+        continue-on-error: true
         working-directory: modflow6
         shell: pwsh
         run: |

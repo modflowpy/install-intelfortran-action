@@ -154,7 +154,7 @@ runs:
         echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
         
         :: prepend MSVC bindir to path
-        set bindir=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64
+        set bindir=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.34.31933\bin\Hostx64\x64
         echo adding MSVC linker bin dir '%bindir%' to path
         echo %bindir%>>"%GITHUB_PATH%"
 
