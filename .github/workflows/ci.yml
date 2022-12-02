@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - develop*
+      - ci-diagnose*
   pull_request:
     branches:
       - main
@@ -69,7 +70,7 @@ jobs:
         shell: bash
         run: |
           # make sure MSVC linker is found
-          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64":$PATH
+          export PATH="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.34.31933/bin/Hostx64/x64":$PATH
           
           if command -v ifort &> /dev/null
           then

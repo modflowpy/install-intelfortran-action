@@ -46,16 +46,16 @@ if ($output -match "hello world") {
     exit 1
 }
 
-rm -Force hw.exe
-icl test/hw.cpp -o hw.exe
-$output=$(./hw.exe)
-if ($output -match "hello world") {
-    write-output "icl compile succeeded"
-    write-output $output
-} else {
-    write-output "icl unexpected output: $output"
-    exit 1
-}
+# rm -Force hw.exe
+# icl test/hw.cpp -o hw.exe
+# $output=$(./hw.exe)
+# if ($output -match "hello world") {
+#     write-output "icl compile succeeded"
+#     write-output $output
+# } else {
+#     write-output "icl unexpected output: $output"
+#     exit 1
+# }
 
 rm -Force hw.exe
 icx test/hw.cpp -o hw.exe
