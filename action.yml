@@ -134,24 +134,30 @@ runs:
         echo "CC=icc" >> $GITHUB_ENV
         echo "ONEAPI_ROOT=$INTEL_HPCKIT_INSTALL_PATH" >> $GITHUB_ENV
 
-    - name: Configure system path (Windows)
+    - name: Check compiler version (Windows)
       if: runner.os == 'Windows'
       shell: cmd
       run: |
         for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
-        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\windows\bin\intel64
-        echo adding ifort compiler bin dir '%bindir%' to path
+        echo INTEL_COMPILER_VERSION=%LATEST%>>"$GITHUB_ENV"
+
+    - name: Configure system path (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\windows\bin\intel64
+        echo adding compiler bin dir '%bindir%' to path
         echo %bindir%>>"%GITHUB_PATH%"
         echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
 
-    - name: Configure oneAPI environment
+    - name: Configure environment
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        echo "configuring oneAPI environment"
+        echo "configuring environment"
         source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
         
-        echo "persisting oneAPI environment"
+        echo "persisting environment"
         env | grep oneapi >> $GITHUB_ENV
 
     # GitHub Actions prepends GNU linker to the PATH before all bash steps, hide it so MSVC linker is found
@@ -160,22 +166,23 @@ runs:
       shell: bash
       run: mv "/usr/bin/link" "$RUNNER_TEMP/link"
 
-    - name: Prepare MSVC
-      if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
+    # - name: Prepare MSVC
+    #   if: runner.os == 'Windows'
+    #   uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Configure oneAPI environment
+    - name: Configure environment
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        echo configuring oneAPI environment
+        echo configuring environment
         echo FC=ifort>>"%GITHUB_ENV%"
         echo CC=icl>>"%GITHUB_ENV%"
         echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
+        
         call "%INTEL_HPCKIT_INSTALL_PATH%\setvars-vcvarsall.bat"
         for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
         :: this script fails when install location is not the default
         call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\env\vars.bat"
-    
-        echo persisting oneAPI environment
+        
+        echo persisting environment
         set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
