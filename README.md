@@ -1,12 +1,12 @@
 # install-intelfortran-action
 
 [![CI](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 An action to install and cache the [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ classic compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [Overview](#overview)
 - [Usage](#usage)
@@ -14,10 +14,9 @@ An action to install and cache the [Intel OneAPI](https://www.intel.com/content/
   - [`path`](#path)
 - [Environment variables](#environment-variables)
 - [Windows caveats](#windows-caveats)
-  - [Shell support](#shell-support)
+  - [Bash & MSVC](#bash--msvc)
   - [Install location](#install-location)
   - [Conda `Scripts`](#conda-scripts)
-  - [GNU `tar`](#gnu-tar)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
