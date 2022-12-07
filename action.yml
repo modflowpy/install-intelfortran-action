@@ -166,10 +166,6 @@ runs:
       shell: bash
       run: mv "/usr/bin/link" "$RUNNER_TEMP/link"
 
-    # - name: Prepare MSVC
-    #   if: runner.os == 'Windows'
-    #   uses: ilammy/msvc-dev-cmd@v1
-
     - name: Configure environment
       if: runner.os == 'Windows'
       shell: cmd
