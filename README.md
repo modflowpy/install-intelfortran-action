@@ -15,6 +15,7 @@ An action to install and cache the [Intel OneAPI](https://www.intel.com/content/
 - [Environment variables](#environment-variables)
 - [Windows caveats](#windows-caveats)
   - [Bash & MSVC](#bash--msvc)
+  - [Visual Studio](#visual-studio)
   - [Install location](#install-location)
   - [Conda `Scripts`](#conda-scripts)
 - [License](#license)
@@ -77,6 +78,16 @@ There are a few things to be aware of when using this action on Windows runners.
 ### Bash & MSVC
 
 GitHub Actions prepends GNU bin paths to the system path before running `bash` shell steps. This causes the GNU linker to be found even if the MSVC bin directory is on the path (more info [here](https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash)). To make sure the MSVC toolchain is selected in `bash` steps on Windows, this action hides the GNU linker, moving it from `/usr/bin/link` to `$RUNNER_TEMP/link`.
+
+### Visual Studio
+
+GitHub Actions `windows-2022` runner images [have Visual Studio version 17.4](https://github.com/actions/runner-images/blob/main/images/win/Windows2022-Readme.md#visual-studio-enterprise-2022) preinstalled, however Intel oneAPI compilers are [not yet compatible with Visual Studio 17.4](https://community.intel.com/t5/Intel-C-Compiler/error-no-instance-of-overloaded-function-matches-the-argument/m-p/1436043/highlight/true#M40535). This can cause compiler errors, for instance:
+
+```shell
+error: no instance of overloaded function <function> matches the argument list
+```
+
+To work around this until Intel introduces support for VS 17.4+ it is recommended to use the `windows-2019` runner image, which has Visual Studio 16.
 
 ### Install location
 
