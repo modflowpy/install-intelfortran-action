@@ -141,7 +141,6 @@ jobs:
       matrix:
         # windows-2022 runners have Visual Studio 17.4.*, which oneapi toolchain doesn't support yet
         os: [ ubuntu-latest, macos-latest, windows-2019 ]
-        env: [ pip, miniconda, micromamba ]
     defaults:
       run:
         shell: bash

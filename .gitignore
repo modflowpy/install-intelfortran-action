@@ -19,3 +19,5 @@ bin-release/
 
 # IDE
 .idea
+
+*.log
