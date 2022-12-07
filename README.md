@@ -76,7 +76,7 @@ There are a few things to be aware of when using this action on Windows runners.
 
 ### Bash & MSVC
 
-This action uses [`ilammy/msvc-dev-cmd`](https://github.com/ilammy/msvc-dev-cmd) internally to configure the MSVC toolchain. Unfortunately, GitHub Actions automatically prepends GNU bin paths to the system path before running `bash` shell steps. This causes the GNU linker to be found even if the MSVC bin directory is on the path (more info [here](https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash)). To make sure the MSVC toolchain is selected in `bash` steps on Windows, this action hides the GNU linker, moving it from `/usr/bin/link` to `$RUNNER_TEMP/link`.
+GitHub Actions prepends GNU bin paths to the system path before running `bash` shell steps. This causes the GNU linker to be found even if the MSVC bin directory is on the path (more info [here](https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash)). To make sure the MSVC toolchain is selected in `bash` steps on Windows, this action hides the GNU linker, moving it from `/usr/bin/link` to `$RUNNER_TEMP/link`.
 
 ### Install location
 
