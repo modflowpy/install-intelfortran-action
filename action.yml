@@ -9,6 +9,10 @@ inputs:
     description: Whether to run scripts to configure oneAPI environment variables
     required: false
     default: 'true'
+  cache:
+    description: Whether to cache the installation
+    required: false
+    default: 'true'
 outputs:
   cache-hit:
     description: Whether the installation was restored from cache
@@ -65,20 +69,27 @@ runs:
 
     # GNU tar can't handle symlinks on Windows, hide it so default Windows tar is used to restore cache
     - name: Hide GNU tar
-      if: runner.os == 'windows'
+      if: runner.os == 'windows' && inputs.cache == 'true'
       shell: bash
       run: mv "C:\Program Files\Git\usr\bin\tar.exe" "$RUNNER_TEMP\tar.exe"
 
+    - name: Get Date
+      if: inputs.cache == 'true'
+      id: get-date
+      shell: bash
+      run: echo "date=$(/bin/date -u "+%Y%m%d")" >> "$GITHUB_OUTPUT"
+
     - name: Restore cache
+      if: inputs.cache == 'true'
       id: cache-ifort
       uses: martijnhols/actions-cache/restore@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
 
     # restore GNU tar
     - name: Restore GNU tar
-      if: runner.os == 'windows'
+      if: runner.os == 'windows' && inputs.cache == 'true'
       shell: bash
       run: mv "$RUNNER_TEMP\tar.exe" 'C:\Program Files\Git\usr\bin\tar.exe'
 
@@ -98,11 +109,11 @@ runs:
         call "%GITHUB_ACTION_PATH%\scripts\install_windows.bat" "${{ env.INTEL_HPCKIT_INSTALL_PATH }}" "${{ env.INTEL_HPCKIT_INSTALLER_URL }}" "${{ env.INTEL_HPCKIT_COMPONENTS }}"
 
     - name: Save cache
-      if: steps.cache-ifort.outputs.cache-hit != 'true'
+      if: inputs.cache == 'true' && steps.cache-ifort.outputs.cache-hit != 'true'
       uses: martijnhols/actions-cache/save@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
 
     - name: Check compiler version
       if: runner.os != 'Windows'
