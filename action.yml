@@ -69,12 +69,17 @@ runs:
       shell: bash
       run: mv "C:\Program Files\Git\usr\bin\tar.exe" "$RUNNER_TEMP\tar.exe"
 
+    - name: Get Date
+      id: get-date
+      shell: bash
+      run: echo "date=$(/bin/date -u "+%Y%m%d")" >> "$GITHUB_OUTPUT"
+
     - name: Restore cache
       id: cache-ifort
       uses: martijnhols/actions-cache/restore@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
 
     # restore GNU tar
     - name: Restore GNU tar
@@ -102,7 +107,7 @@ runs:
       uses: martijnhols/actions-cache/save@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
-        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
+        key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
 
     - name: Check compiler version
       if: runner.os != 'Windows'
