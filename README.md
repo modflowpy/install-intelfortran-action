@@ -3,18 +3,22 @@
 [![CI](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-An action to install and cache the [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ classic compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy).
+An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Overview](#overview)
 - [Usage](#usage)
+- [Environment variables](#environment-variables)
 - [Inputs](#inputs)
   - [`path`](#path)
-- [Environment variables](#environment-variables)
+  - [`setvars`](#setvars)
+    - [Setting oneAPI variables on Linux/macOS](#setting-oneapi-variables-on-linuxmacos)
+    - [Setting oneAPI variables on Windows](#setting-oneapi-variables-on-windows)
 - [Windows caveats](#windows-caveats)
   - [Bash & MSVC](#bash--msvc)
+  - [Visual Studio](#visual-studio)
   - [Install location](#install-location)
   - [Conda `Scripts`](#conda-scripts)
 - [License](#license)
@@ -23,7 +27,7 @@ An action to install and cache the [Intel OneAPI](https://www.intel.com/content/
 
 ## Overview
 
-This action installs the [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ classic compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy) offline installer. After installation, the action configures [environment variables](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup.html) necessary to invoke the compilers from subsequent workflow steps.
+This action installs [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy) offline installer. After installation, the action can optionally configure [environment variables](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup.html) necessary to invoke the compilers from subsequent workflow steps.
 
 ## Usage
 
@@ -34,9 +38,28 @@ To use this action, add a step like the following to your workflow:
   uses: modflowpy/install-intelfortran-action@v1
 ```
 
+By default, this action runs oneAPI `setvars` scripts to configure the environment for use. If you would rather run the oneAPI environment configuration scripts yourself, set the `setvars` input to `false`.
+
+## Environment variables
+
+Besides oneAPI environment variables configured by `setvars` scripts (whose names share substring `ONEAPI`), this action sets some additional variables:
+
+- `INTEL_HPCKIT_INSTALL_PATH` points to the top-level install path
+- `INTEL_HPCKIT_INSTALLER_URL` is the URL of the installer used
+- `INTEL_HPCKIT_COMPONENTS` is a `:`-delimited list of compiler components installed (e.g. `intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler` for Windows)
+- `INTEL_HPCKIT_VERSION` is the oneAPI HPC toolkit version number used (currently `2022.3`)
+- `INTEL_COMPILER_BIN_PATH` is the location of compiler executables (this is equivalent to `$HPCKIT_INSTALL_PATH/compilers/latest/<mac, linux, or windows>/bin/intel64`, substituting the proper OS)
+- `INTEL_COMPILER_VERSION` is the version of the installed compilers (this may be different than the version of the oneAPI HPC Toolkit)
+- `FC` is set to `ifort`
+- `CC` is set to `icc` on Linux and macOS and `icl` on Windows
+- `SETVARS_COMPLETED` indicates whether oneAPI environment variables have been configured (will be `1` if input `setvars` is `true` and variables were successfully configured, otherwise `0`)
+
+**Note:** GitHub Actions does not preserve environment variables between steps by default &mdash; this action persists them via the [`GITHUB_ENV` environment file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable).
+
 ## Inputs
 
 - `path`
+- `setvars`
 
 ### `path`
 
@@ -44,31 +67,31 @@ The `path` input is the location to install executables. The path may be absolut
 
 The default install location on Linux and Mac is `~/.local/bin/ifort`. The *only* install location currently supported on Windows is `C:\Program Files (x86)\Intel\oneAPI` (see [Windows caveats](#windows-caveats) below).
 
-<!-- ### `version`
+### `setvars`
 
-The `version` input configures the oneAPI toolkit version to install, defaulting to the latest (currently `2022.3`). 
+The `setvars` input is a boolean that controls whether the action runs the oneAPI `setvars` scripts to configure the environment for use. The default is `true`.
 
-**Note:** Intel's website does not maintain a programmatically accessible registry of available versions. Moreover, toolkit versioning is distinct from compiler versioning (see [this page] for a mapping between toolkit and compiler versions). For these reasons a list of permitted version numbers are hard-coded into this action. If a new version has been released and this action has not been updated to support it, please feel free to [file an issue](https://github.com/modflowpy/install-intelfortran-action/issues/new).
+If you prefer to run the oneAPI environment configuration scripts manually, set the `setvars` input to `false`. Then, you can run the `setvars` scripts in a subsequent step.
 
-### `components`
+**Note:** if you elect to activate the oneAPI environment manually, you must either do so in the same step as your compiler invocation, or use the `GITHUB_ENV` environment file to persist the environment variables between steps.
 
-The `components` input allows specifying extra components to install from the HPC kit. -->
+#### Setting oneAPI variables on Linux/macOS
 
-## Environment variables
+On Linux and macOS it is sufficient to source `setvars.sh`, using the `INTEL_HPCKIT_INSTALL_PATH` environment variable to locate it:
 
-The action runs oneAPI configuration scripts (e.g. `setvars.sh`), which set a number of environment variables, the names of which share substring `ONEAPI`.
+```shell
+source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
+```
 
-A few additional variables are also set:
+#### Setting oneAPI variables on Windows
 
-- `INTEL_HPCKIT_INSTALL_PATH` points to the top-level install path
-- `INTEL_HPCKIT_INSTALLER_URL` is the URL of the installer used
-- `INTEL_HPCKIT_COMPONENTS` is a `:`-delimited list of compiler components installed (e.g. `intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler` for Windows)
-- `INTEL_COMPILER_BIN_PATH` is the location of compiler executables (this is equivalent to `$HPCKIT_INSTALL_PATH/compilers/latest/<mac, linux, or windows>/bin/intel64`, substituting the proper OS)
-- `INTEL_HPCKIT_VERSION` is the oneAPI HPC toolkit version number used (currently `2022.3`)
-- `FC` is set to `ifort`
-- `CC` is set to `icc` on Linux and macOS and `icl` on Windows
+On Windows, the `vars.bat` script inside the compiler install directory should be used to activate the oneAPI environment. The compiler install directory can be located with the `INTEL_COMPILER_VERSION` variable. For instance, from a `cmd` shell:
 
-**Note:** GitHub Actions does not preserve environment variables between steps by default &mdash; this action persists them via the [`GITHUB_ENV` environment file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable).
+```cmd
+call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat"
+```
+
+**Note:** to configure environment variables from PowerShell, it is necessary to reopen a new shell after running scripts (e.g. `... && pwsh`) &mdash; refer to the [Intel documentation](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup/use-the-setvars-script-with-windows.html) for more info.
 
 ## Windows caveats
 
@@ -76,7 +99,17 @@ There are a few things to be aware of when using this action on Windows runners.
 
 ### Bash & MSVC
 
-This action uses [`ilammy/msvc-dev-cmd`](https://github.com/ilammy/msvc-dev-cmd) internally to configure the MSVC toolchain. Unfortunately, GitHub Actions automatically prepends GNU bin paths to the system path before running `bash` shell steps. This causes the GNU linker to be found even if the MSVC bin directory is on the path (more info [here](https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash)). To make sure the MSVC toolchain is selected in `bash` steps on Windows, this action hides the GNU linker, moving it from `/usr/bin/link` to `$RUNNER_TEMP/link`.
+GitHub Actions prepends GNU bin paths to the system path before running `bash` shell steps. This causes the GNU linker to be found even if the MSVC bin directory is on the path (more info [here](https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash)). To make sure the MSVC toolchain is selected in `bash` steps on Windows, this action hides the GNU linker, moving it from `/usr/bin/link` to `$RUNNER_TEMP/link`.
+
+### Visual Studio
+
+GitHub Actions `windows-2022` runner images [have Visual Studio version 17.4](https://github.com/actions/runner-images/blob/main/images/win/Windows2022-Readme.md#visual-studio-enterprise-2022) preinstalled, however Intel oneAPI compilers are [not yet compatible with Visual Studio 17.4](https://community.intel.com/t5/Intel-C-Compiler/error-no-instance-of-overloaded-function-matches-the-argument/m-p/1436043/highlight/true#M40535). This can cause compiler errors, for instance:
+
+```shell
+error: no instance of overloaded function <function> matches the argument list
+```
+
+To work around this until Intel introduces support for VS 17.4+ it is recommended to use the `windows-2019` runner image, which has Visual Studio 16.
 
 ### Install location
 

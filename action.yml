@@ -5,13 +5,10 @@ inputs:
     description: Install location
     required: false
     default: ~/.local/bin/ifort
-  # version:
-  #   description: Version of the intel oneAPI HPC toolkit to install
-  #   required: false
-  #   default: "2022.3"
-  # components:
-  #   description: Extra HPC toolkit components to install
-  #   required: false
+  setvars:
+    description: Whether to run scripts to configure oneAPI environment variables
+    required: false
+    default: 'true'
 outputs:
   cache-hit:
     description: Whether the installation was restored from cache
@@ -107,6 +104,20 @@ runs:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
         key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}
 
+    - name: Check compiler version
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        latest=$(ls "$INTEL_HPCKIT_INSTALL_PATH/compiler" | tail -n +2 | sort -V | tail -n 1) 
+        echo "INTEL_COMPILER_VERSION=$latest" >> $GITHUB_ENV
+
+    - name: Check compiler version (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
+        echo INTEL_COMPILER_VERSION=%LATEST%>>"%GITHUB_ENV%"
+
     - name: Configure system path
       if: runner.os != 'Windows'
       shell: bash
@@ -130,52 +141,79 @@ runs:
         echo "adding ifort compiler bin dir '$bindir' to path"
         echo "$bindir" >> $GITHUB_PATH
         echo "INTEL_COMPILER_BIN_PATH=$bindir" >> $GITHUB_ENV
-        echo "FC=ifort" >> $GITHUB_ENV
-        echo "CC=icc" >> $GITHUB_ENV
-        echo "ONEAPI_ROOT=$INTEL_HPCKIT_INSTALL_PATH" >> $GITHUB_ENV
 
     - name: Configure system path (Windows)
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
-        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\windows\bin\intel64
-        echo adding ifort compiler bin dir '%bindir%' to path
+        set bindir=%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\windows\bin\intel64
+        echo adding compiler bin dir '%bindir%' to path
         echo %bindir%>>"%GITHUB_PATH%"
         echo INTEL_COMPILER_BIN_PATH=%bindir%>>"%GITHUB_ENV%"
 
-    - name: Configure oneAPI environment
+    - name: Set environment variables
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        echo "configuring oneAPI environment"
+        echo "FC=ifort" >> $GITHUB_ENV
+        echo "CC=icc" >> $GITHUB_ENV
+        echo "ONEAPI_ROOT=$INTEL_HPCKIT_INSTALL_PATH" >> $GITHUB_ENV
+
+    - name: Set environment variables (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        echo FC=ifort>>"%GITHUB_ENV%"
+        echo CC=icl>>"%GITHUB_ENV%"
+        echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
+
+    - name: Run setvars scripts
+      if: runner.os != 'Windows' && inputs.setvars == 'true'
+      shell: bash
+      run: |
         source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
-        
-        echo "persisting oneAPI environment"
         env | grep oneapi >> $GITHUB_ENV
 
+    # - name: Setup MSBuild
+    #   if: runner.os == 'Windows'
+    #   uses: microsoft/setup-msbuild@v1.1
+
+    # - name: Find VS versions
+    #   id: find-vcvars
+    #   if: runner.os == 'Windows'
+    #   shell: pwsh
+    #   run: |
+    #     $products = 'Community','Professional','Enterprise','BuildTools' | %{ "Microsoft.VisualStudio.Product.$_" }
+    #     $vswhere = Get-Command 'vswhere'
+    #     $vs = & $vswhere.Path -products $products -latest -format json | ConvertFrom-Json
+    #     $script = Join-Path $vs.installationPath 'BuildTools' 'VC' 'Auxiliary' 'Build' 'vcvars64.bat'
+    #     echo "vcvars_script=$script" >> $GITHUB_OUTPUT
+
+    # - name: Run vcvars script (Windows)
+    #   if: runner.os == 'Windows'
+    #   shell: cmd
+    #   run: |
+    #     call ${{ steps.find-vcvars.outputs.vcvars_script }}
+    #     :: call "%INTEL_HPCKIT_INSTALL_PATH%\setvars-vcvarsall.bat"
+
+    - name: Run setvars script (Windows)
+      if: runner.os == 'Windows' && inputs.setvars == 'true'
+      shell: cmd
+      run: |
+        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
+        :: this script fails when install location is not the default
+        call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\env\vars.bat"
+        set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
+
+    - name: Set SETVARS_COMPLETED
+      if: inputs.setvars == 'true'
+      shell: bash
+      run: echo "SETVARS_COMPLETED=1" >> $GITHUB_ENV
+
     # GitHub Actions prepends GNU linker to the PATH before all bash steps, hide it so MSVC linker is found
-    - name: Hide GNU linker
+    - name: Hide GNU linker (Windows)
       if: runner.os == 'Windows'
       shell: bash
       run: mv "/usr/bin/link" "$RUNNER_TEMP/link"
 
-    - name: Prepare MSVC
-      if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Configure oneAPI environment
-      if: runner.os == 'Windows'
-      shell: cmd
-      run: |
-        echo configuring oneAPI environment
-        echo FC=ifort>>"%GITHUB_ENV%"
-        echo CC=icl>>"%GITHUB_ENV%"
-        echo ONEAPI_ROOT=%INTEL_HPCKIT_INSTALL_PATH%>>"%GITHUB_ENV%"
-        call "%INTEL_HPCKIT_INSTALL_PATH%\setvars-vcvarsall.bat"
-        for /f "tokens=* usebackq" %%f in (`dir /b "%INTEL_HPCKIT_INSTALL_PATH%\compiler\" ^| findstr /V latest ^| sort`) do @set "LATEST=%%f"
-        :: this script fails when install location is not the default
-        call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%LATEST%\env\vars.bat"
-    
-        echo persisting oneAPI environment
-        set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"

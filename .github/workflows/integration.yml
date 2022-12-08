@@ -1,4 +1,4 @@
-name: MODFLOW 6 integration testing
+name: Integration testing
 on:
   push:
     branches:
@@ -16,8 +16,8 @@ on:
   schedule:
     - cron: '0 6 * * *' # run at 6 AM UTC every day
 jobs:
-  test_build_modflow:
-    name: Test build modflow6
+  test_modflow:
+    name: Test modflow6 integration
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -31,28 +31,34 @@ jobs:
           # https://github.com/mamba-org/provision-with-micromamba#important
           bash -l {0}
     steps:
+
       - name: Checkout action
         uses: actions/checkout@v3
+
       - name: Checkout modflow6
         uses: actions/checkout@v3
         with:
           repository: MODFLOW-USGS/modflow6
           path: modflow6
+
       - name: Setup Python
         if: matrix.env == 'pip'
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
           cache: 'pip'
+
       - name: Install Python dependencies
         if: matrix.env == 'pip'
         shell: bash
         run: pip install -r test/requirements.txt
+
       - name: Install miniconda environment
         if: matrix.env == 'miniconda'
         uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: modflow6/environment.yml
+
       - name: Install micromamba environment
         if: matrix.env == 'micromamba'
         uses: mamba-org/provision-with-micromamba@main
@@ -60,10 +66,12 @@ jobs:
           environment-file: modflow6/environment.yml
           cache-downloads: true
           cache-env: true
+
       - name: Install ifort
         uses: ./
         with:
           path: ${{ runner.os != 'Windows' && 'bin' || 'C:\Program Files (x86)\Intel\oneAPI' }}
+
       - name: Build modflow6 (Linux & Mac)
         if: runner.os != 'Windows' && matrix.env == 'pip'
         working-directory: modflow6
@@ -72,6 +80,7 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
+
       - name: Build modflow6 (Linux & Mac)
         if: runner.os != 'Windows' && matrix.env != 'pip'
         working-directory: modflow6
@@ -79,6 +88,7 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
+
       - name: Add micromamba Scripts dir to path (Windows)
         if: runner.os == 'Windows' && matrix.env == 'micromamba'
         shell: pwsh
@@ -90,6 +100,7 @@ jobs:
             echo "adding micromamba scripts dir to path: $mamba_bin"
             echo $mamba_bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           }
+
       - name: Build modflow6 (Windows bash)
         if: runner.os == 'Windows'
         continue-on-error: true
@@ -99,8 +110,10 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin
           meson compile -v -C builddir
           meson install -C builddir
+
       - name: Show meson build log
         run: cat modflow6/builddir/meson-logs/meson-log.txt
+
       - name: Build modflow6 (Windows pwsh)
         if: runner.os == 'Windows'
         continue-on-error: true
@@ -110,6 +123,7 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=$(pwd) --libdir=bin --wipe
           meson compile -v -C builddir
           meson install -C builddir
+
       - name: Build modflow6 (Windows cmd)
         if: runner.os == 'Windows'
         working-directory: modflow6
@@ -118,3 +132,63 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=%CD% --libdir=bin --wipe
           meson compile -v -C builddir
           meson install -C builddir
+
+  test_pymake:
+    name: Test pymake integration
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # windows-2022 runners have Visual Studio 17.4.*, which oneapi toolchain doesn't support yet
+        os: [ ubuntu-latest, macos-latest, windows-2019 ]
+    defaults:
+      run:
+        shell: bash
+    steps:
+
+      - name: Checkout action
+        uses: actions/checkout@v3
+
+      - name: Checkout pymake
+        uses: actions/checkout@v3
+        with:
+          repository: modflowpy/pymake
+          path: pymake
+
+      - name: Setup Graphviz
+        if: runner.os == 'Linux'
+        uses: ts-graphviz/setup-graphviz@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: 3.9
+
+      - name: Install Python packages
+        working-directory: pymake
+        run: .github/common/install-python.sh
+
+      - name: Setup oneAPI compilers
+        uses: ./
+        with:
+          path: ${{ runner.os != 'Windows' && 'bin' || 'C:\Program Files (x86)\Intel\oneAPI' }}
+
+      - name: Download examples
+        working-directory: pymake
+        run: .github/common/download-examples.sh
+
+      - name: Test (Linux)
+        if: runner.os == 'Linux'
+        working-directory: pymake
+        run: pytest -v -n=auto --dist=loadfile -m="base or regression" --durations=0 --cov=pymake --cov-report=xml autotest/
+
+      - name: Test (MacOS)
+        if: runner.os == 'macOS'
+        working-directory: pymake
+        run: pytest -v -n=auto --dist=loadfile -m="base" --durations=0 --cov=pymake --cov-report=xml autotest/
+
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        working-directory: pymake
+        shell: cmd
+        run: pytest -v -m="base" --durations=0 --cov=pymake --cov-report=xml autotest/
