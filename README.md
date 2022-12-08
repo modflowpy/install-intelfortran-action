@@ -16,6 +16,7 @@ An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/
   - [`setvars`](#setvars)
     - [Setting oneAPI variables on Linux/macOS](#setting-oneapi-variables-on-linuxmacos)
     - [Setting oneAPI variables on Windows](#setting-oneapi-variables-on-windows)
+  - [`cache`](#cache)
 - [Windows caveats](#windows-caveats)
   - [Bash & MSVC](#bash--msvc)
   - [Visual Studio](#visual-studio)
@@ -60,6 +61,7 @@ Besides oneAPI environment variables configured by `setvars` scripts (whose name
 
 - `path`
 - `setvars`
+- `cache`
 
 ### `path`
 
@@ -92,6 +94,12 @@ call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat
 ```
 
 **Note:** to configure environment variables from PowerShell, it is necessary to reopen a new shell after running scripts (e.g. `... && pwsh`) &mdash; refer to the [Intel documentation](https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup/use-the-setvars-script-with-windows.html) for more info.
+
+### `cache`
+
+The `cache` input is a boolean that controls whether the action caches the oneAPI compiler installation. The default is `true`.
+
+**Note:** installation on Windows can take a long time (~30 minutes) so caching is recommended, however an [outstanding cache reservation bug in `actions/cache`](https://github.com/actions/cache/issues/144) can cause the cache to [fail to restore while simultaneously rejecting new saves](https://github.com/MODFLOW-USGS/modflow6/actions/runs/3624583228/jobs/6111766806#step:6:152). The [GitHub-endorsed workaround for this issue](https://github.com/actions/cache/issues/144#issuecomment-579323937) is currently to change keys, therefore this action rotates the cache key once daily.
 
 ## Windows caveats
 
