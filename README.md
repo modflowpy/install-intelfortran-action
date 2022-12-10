@@ -1,5 +1,6 @@
 # install-intelfortran-action
 
+[![GitHub tag](https://img.shields.io/github/tag/modflowpy/install-intelfortran-action.svg)](https://github.com/modflowpy/install-intelfortran-action/tags/latest)
 [![CI](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/modflowpy/install-intelfortran-action/actions/workflows/ci.yml)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
@@ -17,6 +18,8 @@ An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/
     - [Setting oneAPI variables on Linux/macOS](#setting-oneapi-variables-on-linuxmacos)
     - [Setting oneAPI variables on Windows](#setting-oneapi-variables-on-windows)
   - [`cache`](#cache)
+- [Outputs](#outputs)
+  - [`cache-hit`](#cache-hit)
 - [Windows caveats](#windows-caveats)
   - [Bash & MSVC](#bash--msvc)
   - [Visual Studio](#visual-studio)
@@ -100,6 +103,22 @@ call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat
 The `cache` input is a boolean that controls whether the action caches the oneAPI compiler installation. The default is `true`.
 
 **Note:** installation on Windows can take a long time (~30 minutes) so caching is recommended, however an [outstanding cache reservation bug in `actions/cache`](https://github.com/actions/cache/issues/144) can cause the cache to [fail to restore while simultaneously rejecting new saves](https://github.com/MODFLOW-USGS/modflow6/actions/runs/3624583228/jobs/6111766806#step:6:152). The [GitHub-endorsed workaround for this issue](https://github.com/actions/cache/issues/144#issuecomment-579323937) is currently to change keys, therefore this action rotates the cache key once daily.
+
+## Outputs
+
+The action has the following outputs:
+
+- `cache-hit`
+
+### `cache-hit`
+
+The `cache-hit` output indicates whether the cache was successfully restored. The output is `true` if the cache was restored, otherwise `false`. The value will always be `false` if the `cache` input is `false`.
+
+Cache keys follow pattern:
+
+```
+intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ %Y%m%d }}
+```
 
 ## Windows caveats
 

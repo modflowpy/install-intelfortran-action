@@ -3,8 +3,7 @@ on:
   push:
     branches:
       - main
-      - develop
-      - ci-diagnose*
+      - develop*
     paths-ignore:
       - '**.md'
   pull_request:
