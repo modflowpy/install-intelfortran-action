@@ -151,15 +151,16 @@ While the HPC toolkit's install location can be selected freely on Linux and Mac
 
 ### Conda `Scripts`
 
-On Windows, this action can stomp on system path configurations set up by `mamba-org/provision-with-micromamba`, causing programs in `<micromamba root>\envs\<your environment name>\Scripts` not to be found when `shell: pwsh` is used. The recommended pattern to avoid this is:
+On Windows, this action can stomp on system path configurations set up by `mamba-org/provision-with-micromamba` and `setup-micromamba`, causing programs in `<micromamba root>\envs\<your environment name>\Scripts` not to be found when `shell: pwsh` is used. The recommended pattern to avoid this is:
 
-1) use `mamba-org/provision-with-micromamba@main`
-2) use `modflowpy/install-intelfortran-action@v1`
-3) add a step like the following before any steps expecting to use the Micromamba environment (implemented in Powershell below, but need not be):
+1) Use `mamba-org/provision-with-micromamba@main` or `setup-micromamba@v1`. If the former, the root is `C:\Users\runneradmin\micromamba-root\`. If the latter, specify the root with the `micromamba-root-path` input (e.g., `${{ runner.temp }}/micromamba-root`).
+2) Use `modflowpy/install-intelfortran-action@v1`
+3) Add a step like the following to add the `Scripts` dir to the path, before any steps expecting to use the Micromamba environment (implemented in Powershell below, but need not be):
 
 ```pwsh
-# update the path with your environment name
+# former for provision-with-micromamba, latter for setup-micromamba
 $path = "C:\Users\runneradmin\micromamba-root\envs\<env name>\Scripts"
+# $path = "${{ runner.temp }}\micromamba-root\envs\<env name>\Scripts"
 echo $path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 ```
 
