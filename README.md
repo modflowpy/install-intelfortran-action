@@ -6,6 +6,8 @@
 
 An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.bksc2p) Fortran and C/C++ compilers via the [HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html#gs.g10hgy).
 
+**Note:** [`awvwgk/setup-fortran`](https://github.com/awvwgk/setup-fortran) is recommended. Maintenance of this action will cease in 2024.
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
