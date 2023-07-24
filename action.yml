@@ -20,6 +20,13 @@ outputs:
 runs:
   using: composite
   steps:
+
+    - name: Deprecation warning
+      shell: bash
+      run: |
+        echo "WARNING: This action will be archived on 01/01/24 in light of better alternatives."
+        echo "Please use awvwgk/setup-fortran instead (https://github.com/awvwgk/setup-fortran)."
+
     - name: Set install path
       if: runner.os != 'Windows'
       shell: bash
