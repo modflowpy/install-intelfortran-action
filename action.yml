@@ -20,6 +20,13 @@ outputs:
 runs:
   using: composite
   steps:
+
+    - name: Deprecation warning
+      shell: bash
+      run: |
+        echo "WARNING: This action will be archived on 01/01/24 in light of better alternatives."
+        echo "Please use awvwgk/setup-fortran instead (https://github.com/awvwgk/setup-fortran)."
+
     - name: Set install path
       if: runner.os != 'Windows'
       shell: bash
@@ -82,7 +89,7 @@ runs:
     - name: Restore cache
       if: inputs.cache == 'true'
       id: cache-ifort
-      uses: martijnhols/actions-cache/restore@v3
+      uses: actions/cache/restore@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
         key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
@@ -110,7 +117,7 @@ runs:
 
     - name: Save cache
       if: inputs.cache == 'true' && steps.cache-ifort.outputs.cache-hit != 'true'
-      uses: martijnhols/actions-cache/save@v3
+      uses: actions/cache/save@v3
       with:
         path: ${{ env.INTEL_HPCKIT_INSTALL_PATH }}
         key: intelfortran-${{ runner.os }}-${{ env.INTEL_HPCKIT_VERSION }}-${{ env.INTEL_HPCKIT_COMPONENTS }}-${{ steps.get-date.outputs.date }}
