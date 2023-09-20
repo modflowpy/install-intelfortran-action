@@ -11,6 +11,7 @@ An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Overview](#overview)
 - [Usage](#usage)
 - [Environment variables](#environment-variables)
@@ -20,6 +21,7 @@ An action to install and cache [Intel OneAPI](https://www.intel.com/content/www/
     - [Setting oneAPI variables on Linux/macOS](#setting-oneapi-variables-on-linuxmacos)
     - [Setting oneAPI variables on Windows](#setting-oneapi-variables-on-windows)
   - [`cache`](#cache)
+  - [`vs20xx`](#vs20xx)
 - [Outputs](#outputs)
   - [`cache-hit`](#cache-hit)
 - [Windows caveats](#windows-caveats)
@@ -105,6 +107,10 @@ call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat
 The `cache` input is a boolean that controls whether the action caches the oneAPI compiler installation. The default is `true`.
 
 **Note:** installation on Windows can take a long time (~30 minutes) so caching is recommended, however an [outstanding cache reservation bug in `actions/cache`](https://github.com/actions/cache/issues/144) can cause the cache to [fail to restore while simultaneously rejecting new saves](https://github.com/MODFLOW-USGS/modflow6/actions/runs/3624583228/jobs/6111766806#step:6:152). The [GitHub-endorsed workaround for this issue](https://github.com/actions/cache/issues/144#issuecomment-579323937) is currently to change keys, so this action rotates the cache key once daily. You may want to run a job in the early hours of the morning to warm up the cache on your repository's default branch, so PR/feature branches can restore from it throughout the day.
+
+### `vs20xx`
+
+The `vs2017`, `vs2019`, and `vs2022` inputs toggle whether to integrate with Visual Studio 2017, 2019, and 2022, respectively, corresponding to the `NEED_VS20xx_INTEGRATION` installer options.
 
 ## Outputs
 

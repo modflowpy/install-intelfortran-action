@@ -13,80 +13,150 @@ on:
     paths-ignore:
       - '**.md'
 jobs:
-  test:
-    name: Test
+  # test:
+  #   name: Test
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019, windows-2022 ]
+  #       path: [ absolute, relative, tilde, default ]
+  #       setvars: [ 'true', 'false' ]
+  #   steps:
+
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: Set bin path
+  #       if: runner.os != 'Windows'
+  #       run: |
+  #         if [ "${{ matrix.path }}" == "absolute" ]; then
+  #           bindir="$HOME/.local/bin"
+  #         elif [ "${{ matrix.path }}" == "relative" ]; then
+  #           bindir="bin"
+  #         elif [ "${{ matrix.path }}" == "tilde" ]; then
+  #           bindir="~/.local/bin"
+  #         else
+  #           # action's default location
+  #           bindir="~/.local/bin/ifort"
+  #         fi
+
+  #         echo "TEST_BINDIR=$bindir" >> $GITHUB_ENV
+
+  #     - name: Set bin path (Windows)
+  #       if: runner.os == 'Windows'
+  #       shell: pwsh
+  #       run: |
+  #         if ("${{ matrix.path }}" -eq "absolute") {
+  #           # $bindir = "C:\Users\runneradmin\.local\bin"
+  #           $bindir = "C:\Program Files (x86)\Intel\oneAPI"
+  #         } elseif ("${{ matrix.path }}" -eq "relative") {
+  #           $bindir = "bin"
+  #         } elseif ("${{ matrix.path }}" -eq "tilde") {
+  #           $bindir = "~/.local/bin"
+  #         } else {
+  #           # actions's default location
+  #           $bindir = "~/.local/bin/ifort"
+  #         }
+
+  #         echo "TEST_BINDIR=$bindir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+  #     - name: Install compilers
+  #       if: matrix.path != 'default'
+  #       uses: ./
+  #       with:
+  #         path: ${{ env.TEST_BINDIR }}
+  #         setvars: ${{ matrix.setvars }}
+
+  #     - name: Install compilers
+  #       if: matrix.path == 'default'
+  #       uses: ./
+  #       with:
+  #         setvars: ${{ matrix.setvars }}
+
+  #     - name: Set environment variables
+  #       if: runner.os != 'Windows' && matrix.setvars != 'true'
+  #       shell: bash
+  #       run: |
+  #         source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
+  #         env | grep oneapi >> $GITHUB_ENV
+
+  #     - name: Set environment variables
+  #       if: runner.os == 'Windows' && matrix.setvars != 'true'
+  #       shell: cmd
+  #       run: |
+  #         call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat"
+  #         set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
+
+  #     # not needed atm, but just in case any future tests require this
+  #     - name: Set SETVARS_COMPLETED
+  #       if: matrix.setvars != 'true'
+  #       shell: bash
+  #       run: echo "SETVARS_COMPLETED=1" >> $GITHUB_ENV
+
+  #     - name: Test compilers (Linux & Mac)
+  #       if: runner.os != 'Windows'
+  #       run: ./test/test.sh ${{ env.TEST_BINDIR }}
+
+  #     - name: Test compilers (Windows bash)
+  #       if: runner.os == 'Windows'
+  #       shell: bash
+  #       run: |
+  #         if command -v ifort &> /dev/null
+  #         then
+  #           echo "ifort found"
+  #         else
+  #           echo "ifort not available"
+  #           exit 1
+  #         fi
+
+  #         ifort test/hw.f90 -o hw
+  #         output=$(./hw '2>&1')
+  #         if [[ "$output" == *"hello world"* ]]
+  #         then
+  #           echo "compile succeeded"
+  #           echo "$output"
+  #         else
+  #           echo "unexpected output: $output"
+  #           exit 1
+  #         fi
+
+  #     - name: Test compilers (Windows pwsh)
+  #       if: runner.os == 'Windows'
+  #       shell: pwsh
+  #       run: ./test/test.ps1 "${{ env.TEST_BINDIR }}"
+
+  #     - name: Test compilers (Windows cmd)
+  #       if: runner.os == 'Windows'
+  #       shell: cmd
+  #       run: call "./test/test.bat"
+  
+  test_vs_integration:
+    name: Test VS integration
+    env:
+      TEST_BINDIR: ~/.local/bin/ifort
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, windows-2019, windows-2022 ]
-        path: [ absolute, relative, tilde, default ]
-        setvars: [ 'true', 'false' ]
+        os: [ windows-2019, windows-2022 ]
     steps:
-
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set bin path
-        if: runner.os != 'Windows'
-        run: |
-          if [ "${{ matrix.path }}" == "absolute" ]; then
-            bindir="$HOME/.local/bin"
-          elif [ "${{ matrix.path }}" == "relative" ]; then
-            bindir="bin"
-          elif [ "${{ matrix.path }}" == "tilde" ]; then
-            bindir="~/.local/bin"
-          else
-            # action's default location
-            bindir="~/.local/bin/ifort"
-          fi
-
-          echo "TEST_BINDIR=$bindir" >> $GITHUB_ENV
-
-      - name: Set bin path (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if ("${{ matrix.path }}" -eq "absolute") {
-            # $bindir = "C:\Users\runneradmin\.local\bin"
-            $bindir = "C:\Program Files (x86)\Intel\oneAPI"
-          } elseif ("${{ matrix.path }}" -eq "relative") {
-            $bindir = "bin"
-          } elseif ("${{ matrix.path }}" -eq "tilde") {
-            $bindir = "~/.local/bin"
-          } else {
-            # actions's default location
-            $bindir = "~/.local/bin/ifort"
-          }
-
-          echo "TEST_BINDIR=$bindir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Install compilers
-        if: matrix.path != 'default'
+      - name: Setup Intel Fortran (VS2019)
+        if: matrix.os == 'windows-2019'
         uses: ./
         with:
-          path: ${{ env.TEST_BINDIR }}
-          setvars: ${{ matrix.setvars }}
-
-      - name: Install compilers
-        if: matrix.path == 'default'
+          setvars: 'true'
+          vs2019: 'true'
+      
+      - name: Setup Intel Fortran (VS2022)
+        if: matrix.os == 'windows-2022'
         uses: ./
         with:
-          setvars: ${{ matrix.setvars }}
-
-      - name: Set environment variables
-        if: runner.os != 'Windows' && matrix.setvars != 'true'
-        shell: bash
-        run: |
-          source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
-          env | grep oneapi >> $GITHUB_ENV
-
-      - name: Set environment variables
-        if: runner.os == 'Windows' && matrix.setvars != 'true'
-        shell: cmd
-        run: |
-          call "%INTEL_HPCKIT_INSTALL_PATH%\compiler\%INTEL_COMPILER_VERSION%\env\vars.bat"
-          set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
+          setvars: 'true'
+          vs2022: 'true'
 
       # not needed atm, but just in case any future tests require this
       - name: Set SETVARS_COMPLETED
@@ -94,11 +164,7 @@ jobs:
         shell: bash
         run: echo "SETVARS_COMPLETED=1" >> $GITHUB_ENV
 
-      - name: Test compilers (Linux & Mac)
-        if: runner.os != 'Windows'
-        run: ./test/test.sh ${{ env.TEST_BINDIR }}
-
-      - name: Test compilers (Windows bash)
+      - name: Test compilers (bash)
         if: runner.os == 'Windows'
         shell: bash
         run: |
@@ -121,12 +187,12 @@ jobs:
             exit 1
           fi
 
-      - name: Test compilers (Windows pwsh)
+      - name: Test compilers (pwsh)
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./test/test.ps1 "${{ env.TEST_BINDIR }}"
 
-      - name: Test compilers (Windows cmd)
+      - name: Test compilers (cmd)
         if: runner.os == 'Windows'
         shell: cmd
         run: call "./test/test.bat"

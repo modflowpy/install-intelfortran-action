@@ -13,6 +13,18 @@ inputs:
     description: Whether to cache the installation
     required: false
     default: 'true'
+  vs2017:
+    description: Whether to integrate with Visual Studio 2017.
+    required: false
+    default: 'false'
+  vs2019:
+    description: Whether to integrate with Visual Studio 2019.
+    required: false
+    default: 'false'
+  vs2022:
+    description: Whether to integrate with Visual Studio 2022.
+    required: false
+    default: 'false'
 outputs:
   cache-hit:
     description: Whether the installation was restored from cache
@@ -74,6 +86,30 @@ runs:
         echo "using HPC kit version $version"
         echo "INTEL_HPCKIT_VERSION=$version" >> $GITHUB_ENV
 
+    - name: Set VS integration variables (Windows)
+      if: runner.os == 'Windows'
+      id: vs-int
+      shell: bash
+      run: |
+        if [[ "${{ inputs.vs2017 }}" == "true" ]]; then
+          vs2017=1
+        else
+          vs2017=0
+        fi
+        if [[ "${{ inputs.vs2019 }}" == "true" ]]; then
+          vs2019=1
+        else
+          vs2019=0
+        fi
+        if [[ "${{ inputs.vs2022 }}" == "true" ]]; then
+          vs2022=1
+        else
+          vs2022=0
+        fi
+        echo "vs2017=$vs2017" >> $GITHUB_OUTPUT
+        echo "vs2019=$vs2019" >> $GITHUB_OUTPUT
+        echo "vs2022=$vs2022" >> $GITHUB_OUTPUT
+
     # GNU tar can't handle symlinks on Windows, hide it so default Windows tar is used to restore cache
     - name: Hide GNU tar
       if: runner.os == 'windows' && inputs.cache == 'true'
@@ -113,7 +149,7 @@ runs:
       shell: cmd
       run: |
         echo downloading and running HPC kit installer
-        call "%GITHUB_ACTION_PATH%\scripts\install_windows.bat" "${{ env.INTEL_HPCKIT_INSTALL_PATH }}" "${{ env.INTEL_HPCKIT_INSTALLER_URL }}" "${{ env.INTEL_HPCKIT_COMPONENTS }}"
+        call "%GITHUB_ACTION_PATH%\scripts\install_windows.bat" "${{ env.INTEL_HPCKIT_INSTALL_PATH }}" "${{ env.INTEL_HPCKIT_INSTALLER_URL }}" "${{ env.INTEL_HPCKIT_COMPONENTS }}" "${{ steps.vs-int.outputs.vs2017 }}" "${{ steps.vs-int.outputs.vs2019 }}" "${{ steps.vs-int.outputs.vs2022 }}"
 
     - name: Save cache
       if: inputs.cache == 'true' && steps.cache-ifort.outputs.cache-hit != 'true'
@@ -191,10 +227,6 @@ runs:
       run: |
         source "$INTEL_HPCKIT_INSTALL_PATH/setvars.sh"
         env | grep oneapi >> $GITHUB_ENV
-
-    # - name: Setup MSBuild
-    #   if: runner.os == 'Windows'
-    #   uses: microsoft/setup-msbuild@v1.1
 
     # - name: Find VS versions
     #   id: find-vcvars
