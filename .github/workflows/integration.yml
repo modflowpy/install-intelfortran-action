@@ -148,9 +148,9 @@ jobs:
           repository: MODFLOW-USGS/modflow6
           path: modflow6
       
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          vsversion: 2019
+      # - uses: ilammy/msvc-dev-cmd@v1
+      #   with:
+      #     vsversion: 2019
       
       # - name: Prepare MSVC
       #   uses: bus1/cabuild/action/msdevshell@v1
@@ -162,12 +162,17 @@ jobs:
         with:
           vs2019: 'true'
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Build modflow6
         working-directory: modflow6/msvs
-        run: devenv mf6.sln /Build
+        run: |
+          # devenv mf6.sln /Build
+          $vsroot = (Get-VisualStudioInstance).InstallationPath
+          $devenv = join-path $vsroot "Common7\IDE\devenv.com"
+          & $devenv mf6.sln /Upgrade
+          & $devenv mf6.sln /Build
       
       - name: Show build log
         shell: bash
