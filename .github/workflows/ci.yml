@@ -160,7 +160,6 @@ jobs:
 
       # not needed atm, but just in case any future tests require this
       - name: Set SETVARS_COMPLETED
-        if: matrix.setvars != 'true'
         shell: bash
         run: echo "SETVARS_COMPLETED=1" >> $GITHUB_ENV
 

@@ -9,14 +9,14 @@ on:
   pull_request:
     branches:
       - main
-      - develop
+      - develop*
     paths-ignore:
       - '**.md'
   schedule:
     - cron: '0 6 * * *' # run at 6 AM UTC every day
 jobs:
-  test_modflow:
-    name: Test modflow6 integration
+  test_modflow_meson:
+    name: Build modflow6 with meson
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -131,6 +131,37 @@ jobs:
           meson setup builddir -Ddebug=false --prefix=%CD% --libdir=bin --wipe
           meson compile -v -C builddir
           meson install -C builddir
+
+  test_modflow_msvs:
+    name: Build modflow6 with MSVS
+    runs-on: windows-2019
+    env:
+      FC: ifort
+    steps:
+
+      - name: Checkout modflow6
+        uses: actions/checkout@v4
+      
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: 2019
+      
+      # - name: Prepare MSVC
+      #   uses: bus1/cabuild/action/msdevshell@v1
+      #   with:
+      #     architecture: x64
+
+      - name: Install ifort
+        uses: ./
+        with:
+          vs2019: 'true'
+
+      - name: Build modflow6
+        run: devenv msvs/mf6.sln /Build
+      
+      - name: Show build log
+        shell: bash
+        run: cat "D:\a\modflow6\modflow6\msvs\UpgradeLog.htm"
 
   test_pymake:
     name: Test pymake integration
