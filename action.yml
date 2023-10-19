@@ -21,11 +21,17 @@ runs:
   using: composite
   steps:
 
-    - name: Deprecation warning
+    - name: Migration warning
       shell: bash
       run: |
-        echo "WARNING: This action will be archived on 01/01/24 in light of better alternatives."
-        echo "Please use awvwgk/setup-fortran instead (https://github.com/awvwgk/setup-fortran)."
+        echo "WARNING: This action will be archived on 01/01/24."
+        echo "Use fortran-lang/setup-fortran instead (https://github.com/fortran-lang/setup-fortran)."
+
+    - name: Migration brownout
+      uses: wpbonelli/schedule-outage@v1
+      with:
+        probability: 0.1
+        message: "This action will be archived on 01/01/24. Use fortran-lang/setup-fortran instead (https://github.com/fortran-lang/setup-fortran)."
 
     - name: Set install path
       if: runner.os != 'Windows'
