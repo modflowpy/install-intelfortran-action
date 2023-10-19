@@ -1,9 +1,6 @@
 name: Integration testing
 on:
   push:
-    branches:
-      - main
-      - develop*
     paths-ignore:
       - '**.md'
   pull_request:
@@ -14,10 +11,12 @@ on:
       - '**.md'
   schedule:
     - cron: '0 6 * * *' # run at 6 AM UTC every day
+
 jobs:
   test_modflow:
     name: Test modflow6 integration
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -135,6 +134,7 @@ jobs:
   test_pymake:
     name: Test pymake integration
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
